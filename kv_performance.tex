@@ -1,0 +1,73 @@
+\documentclass[a4paper]{jpconf}
+\usepackage{graphicx}
+\usepackage{lmodern}% http://ctan.org/pkg/lm
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{citesort}
+\usepackage{changepage}
+\usepackage{caption}
+\usepackage{color}
+\usepackage{subcaption}
+\usepackage{hyperref}\begin{document}
+\title{Profiling ATLAS Kit Validation on Intel Haswell-EP processors}
+
+\author{M Guerri$^1$, D Giordano$^1$, C Cordeiro$^1$}
+\address{$^1$ CERN}
+\ead{marco.guerri@cern.ch}
+
+\definecolor{lightblue}{gray}{0.95}
+
+\lstset{
+    language=Python,
+    basicstyle=\fontfamily{pcr}\small,
+    tabsize=2,
+    backgroundcolor=\color{lightblue},
+    captionpos=b,
+    numbers=left,
+    stepnumber=1,
+    numberstyle=\tiny,
+    numbersep=5pt,
+    frame=lines,
+    escapeinside={£}{£},
+    breaklines=true,
+    keywordstyle=\color[rgb]{0,0,1},
+    commentstyle=\color[rgb]{0.133,0.545,0.133},
+    stringstyle=\color[rgb]{1,0,0}
+}
+
+\begin{abstract}
+With the increasing adoption of cloud resources, public and private, to support
+the demands in terms of computing capacity of the HEP community, WLCG sites have begun 
+studying several benchmarking applications aimed continuously assessing the 
+performance of virtual machine procured from commercial providers. 
+In order to strongly characterize the behavior of these benchmarks, in-depth
+profiling activities have been carried out. In this document we outline
+our experience in profiling one specific application, ATLAS Kit Validation, 
+in an attempt to explain an unexpected distribution of the performance samples
+obtained on systems based on Intel Haswell-EP processors.
+
+
+\end{abstract}
+
+\section{ATLAS Kit Validation}
+ATLAS Kit Validation (KV) is the toolkit adopted by the ATLAS collaboration for the
+validation of their software installation in grid sites. The tests include, among
+others, the GEANT4 simulation of the ATLAS detector. A single KV run simulates
+$n$ independent events consisting of a single muon particle propagating through
+the detector. The CPU time needed to simulate each event is recorded and the 
+average over the $n$ events is computed as the final benchmark result. In order to 
+remove from the measurement the overhead coming from the initialization of the 
+software libraries and the configuration of the simulation parameters (detector 
+geometry, list of particles, properties of the materials), the first event in the 
+sequence is excluded from the final average.  
+
+\begin{lstlisting}[language=Python]
+print "Hello world"
+\end{lstlisting}
+
+
+\section*{References}
+\bibliography{iopart-num}
+\bibliographystyle{unsrt}
+\end{document}
