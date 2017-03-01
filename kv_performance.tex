@@ -81,7 +81,7 @@ to host 4 VMs providing 8 virtual processing units each, with pairs of VMs
 confined to separate NUMA domains. KV was executed with 8 parallel processes 
 on each VM, resulting in the full utilization of the hardware threads provided
 by the machine, and the final aggregated result was obtained as the average over 
-the 8 simulation times. The samples collected VMs under test resulted in a 
+the 8 simulation times. The samples collected from the VMs under test resulted in a 
 dual-mode guassian distribution, with a 2\% difference between the 
 mean of the two modes as shown in figure 
 ~\ref{dual-mode-gaussian}.
@@ -102,15 +102,16 @@ time when binding KV to core 8, the first core of the second processor, i.e. CPU
 \end{figure}
 Further tests confirmed the same behavior also with Simultaneous Multithreading 
 on, with slower performance on thread 8 and 24, both belonging to the first core of 
-CPU1. Single thread runs in a virtualized configuration showed a 16\%
-increase in the final average simulation time, which could easily explain the 2\%
-spread that stood out from the statistical distribution when averaged over 8
-virtual processors. 
+CPU1. Single thread runs in a virtualized environment showed a 16\%
+increase in the final average simulation time when running on virtual processors
+corresponding to hardware threads 8 and 24, confirming the 2\%
+spread that stood out from the statistical distribution after averaging the results
+over all 8 virtual processors within each VM. 
 
 
 \section{Profiling single events}
 A deeper dive in the logs showed that all the events required more time to be 
-simulated on core 8. In particular, event 73 was identified as the one
+simulated on the first core of CPU1. In particular, event 73 was identified as the one
 requiring the longest simulation time: ~34 seconds on core 8 against ~29 seconds
 on any other core, making it a good candidate for an in-depth analysis. Profiling 
 a single event required a way to attach \textit{perf} to KV only during the time frame
@@ -118,9 +119,9 @@ where one specific simulation was being executed. The solution adopted consisted
 in a Python script which would monitor KV log files via \textit{pyinotify} to detect
 the beginning of event 73. The script would attach \textit{perf} to KV until the
 detection of the end of event. One essential requirement for this to work correctly
-is to disable all the buffering carried out at any layer of the stack before
+was to disable all the buffering carried out at any layer of the stack before
 data actually reaching the storage device. KV writes log files via Python code,
-therefore the following points must be taken into consideration:
+therefore the following points had be taken into consideration:
 %\begin{lstlisting}[caption=Simulation of event 73 on core 8, basicstyle=\scriptsize]
 %*  Memory snooper called at end of event with VMEM: 1443232kB
 %G4SimTimer           INFO        Event nr. 73 took 34.58 s. New average 0.985 +- 0.4806
