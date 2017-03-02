@@ -1,0 +1,13 @@
+stages:
+  - pdflatex
+
+buildpdf:
+  image: gitlab-registry.cern.ch/cloud-infrastructure/chep-dam
+  stage: pdflatex
+  script:
+    - cd $CI_PROJECT_DIR
+    - pdflatex -interaction=batchmode kv_performance.tex && bibtex kv_performance && pdflatex -interaction=batchmode kv_performance
+    
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR 
