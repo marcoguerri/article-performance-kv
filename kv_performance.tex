@@ -1,5 +1,6 @@
 \documentclass[a4paper]{jpconf}
 \usepackage{graphicx}
+\usepackage{draftwatermark}
 \usepackage[margin=0.8in]{geometry}
 \usepackage{lmodern}% http://ctan.org/pkg/lm
 \usepackage{listings}
@@ -21,7 +22,7 @@
 \author{M Guerri$^1$, D Giordano$^1$, C Cordeiro$^1$}
 \address{$^1$ CERN}
 \ead{marco.guerri@cern.ch}
-
+\SetWatermarkText{DRAFT}
 \definecolor{lightblue}{gray}{0.95}
 
 \lstset{
@@ -72,7 +73,7 @@ over all 8 virtual processors within each VM.
 
 \section{Profiling single events}
 A deeper dive in the logs showed that all the events required more time to be 
-simulated on the first core of CPU1. In particular, event 73 was identified as the one
+simulated on core 8. In particular, event 73 was identified as the one
 requiring the longest simulation time: ~34 seconds on core 8 against ~29 seconds
 on any other core, making it a good candidate for an in-depth analysis. Profiling 
 a single event required a way to attach \textit{perf} to KV only during the time frame
@@ -106,9 +107,9 @@ therefore the following points had be taken into consideration:
 of libc \textit{fopen}. Python can modify libc buffering behaviour via libc 
 function \textit{setvbuf} if \textit{buffering} parameter is specified, 
 otherwise the default libc buffering is used. Without control over the Python
-source code, its it not possible to modify buffering options.
+source code, it was not possible to modify buffering options.
 \item Environment variable \textit{PYTHONUNBUFFERED} can be used to turn off
-buffering of \textit{stdin, stdout, stderr}.. 
+buffering of \textit{stdin, stdout, stderr}.
 \end{itemize}
 The best solution found to implement unbuffered I/O to log files was to set 
 \textit{PYTHONUNBUFFERED=1} and pipe logs printed by KV on standard output to
@@ -117,7 +118,8 @@ The best solution found to implement unbuffered I/O to log files was to set
 \textit{unbuffer} command was also used to disable buffering between the two
 ends of the pipe. 
 \\
-\textit{perf record} was used to profile the execution. Results for core 8 
+The profile of the execution was obtained with \textit{perf record} . 
+Results for core 8 
 and core 0 are shown respectively in figure ~\ref{event-73-processor8} and 
 figure ~\ref{event-73-processor0} (limiting the output to the functions that
 account for more than 1\% of the runtime). 
@@ -140,7 +142,7 @@ Excluding the higher number of events
 (unhalted core cycles) on core 8, which was expected due to the longer runtime,
 it was not possible to identify any major difference between the two runs, which
 were showing the same functions coming mostly from \textit{libm} and \textit{Gean4} 
-functions. These results were then elaborated into a list of the top contributors 
+libraries. These results were then elaborated into a list of the top contributors 
 to the additional clock cycles required when running on core 8 as shown 
 in table ~\ref{major-contributors}.
 
@@ -179,9 +181,11 @@ of the additional clock cycles) }
 After having obtained the list in table ~\ref{major-contributors}, the 
 top contributors to the additional runtime were profiled to obtain
 a detailed breakdown of the weight of each assembly instruction in terms of 
-clock cycles. The recordings for \textit{\_\_sin\_avx}, 
+clock cycles. The recordings of \textit{\_\_sin\_avx}, 
 \textit{PostStepGetPhysicalInteractionLength}, \textit{UserSteppingAction},
-\textit{UpdateStepForAlongStep} are reported in Appendix  
+\textit{UpdateStepForAlongStep}, \textit{GetZandACrossSection},
+\textit{DistanceToOut}, \textit{GetCrossSection} and \textit{\_\_log10\_finite}
+ are reported in Appendix  
 ~\ref{appending:function-recording}. The results highlighted an interesting 
 pattern on most of the major contributors:  it appeared that an unexpectedly 
 large number of cycles was attributed to the initial instructions of each function.
@@ -192,63 +196,106 @@ execution time of that specific function. Such behavior was common to all cores,
 but if these functions were responsible for most of the additional execution time,
 then probably the reason had to be related to this peculiar profile. A first hypothesis
 pointed in the direction of instruction cache misses as the reason behind
-the large number of cycles spent on the initial instructions 
+the large number of cycles spent on the initial instructions.
 ATLAS Kit Validation seemed a good candidate for a large number of  such events,
-with its large code segment consisting of tens of shared libraries. Even though,
+with its large code segment consisting of tens of shared libraries. Even though
 this hypothesis could not explain the slower performance when running on core 8,
 an attempt was made to validate it.
  
 
 \section{Synthetic benchmark to generate instruction cache miss}
 A synthetic benchmark aimed at causing a large number of instruction cache 
-misses was generated with the Python script in Appendix 
-~\ref{appendix:synthetic-benchmark-cache-misses}. The resulting C code was compiled
+misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script}. The resulting C code was compiled
 under CentOS 7 with gcc 4.8.5 and \textit{-O0}. The benchmark consists of a large
-number of dummy functions which are called randomly at runtime, resulting in
+number of dummy functions which are called randomly at runtime, generating
 repeated instruction cache misses in L1i and L2. Interestingly, the results
-highlighted the same performance asymmetry observed with ATLAS Kit Validation.
-%as shown in figure ~\ref{syn-bench-a}. 
-The runtime on core 8 is 20\% higher in this case.
-
+highlighted the same performance asymmetry observed with ATLAS Kit Validation,
+with a 20\% increase in runtime on core 8 with respect to the other cores.
+This effect could only be observed on the following systems:
+\begin{itemize}
+    \item Haswell-EP
+    \item Haswell-EX (quad-socket, with a single core on two different sockets affected)
+    \item Broadwell-EP
+\end{itemize}
+All the attempts to reproduce a similar performance asymmetry on Sandy Bridge
+and Ivy Bridge failed.
 %\begin{figure}[h]
 %\begin{center}
 %\includegraphics[scale=0.45]{images/syn-bench-a.png}
 %\end{center}
 %\caption{\label{syn-bench-a} Runtime of the synthetic benchmark (random calls)}
 %\end{figure}
-
-However, further investigations succeeded in reproducing 
-workloads with similar relative number of L1i and L2 instruction cache misses,
-but without any runtime discrepancy, disproving the initial hypothesis.
+Further investigations succeeded in generating
+workloads with similar relative number of L1i and L2 instruction cache misses
+on Haswell and Broadwell, but without any discrepancy in execution time, 
+disproving the initial hypothesis and making it necessary to seek for an 
+alternative explanation.
 
 \section{Additional benchmark with customizable code segment size}
-A second synthetic benchmark was written in order to verify the existence of a 
-possible correlation between the size of the code segment and the performance 
+\label{section:benchmark-itlb}
+\href{https://gitlab.cern.ch/snippets/217}{A second synthetic benchmark} 
+was written in order to verify the existence of a 
+correlation between the size of the code segment and the performance 
 asymmetry. This benchmark is also aimed at generating instruction cache misses,
 but within a code segment whose size can be controlled via a command line 
 argument. The code makes use of a large switch statement that dispatches
 opcodes randomly generated. This operation is performed in loop: 
-by feeding the switch with $opcode \pmod n$, the number of case 
+by feeding the switch with $opcode\pmod n$, the number of case 
 branches effectively used is limited to $n$. The higher $n$, the larger the
 number of case branches that can be reached. By ``sampling'' the 
 maximum and minimum values of \textit{rip} register, a reliable estimate of the 
-size of the hot portion of the code segment is provided. The
+size of the hot portion of the code segment can be obtained. The
 benchmark accepts $n$ as command line argument and prints a tuple consisting of
 three values: \textit{(size code segment, runtime without initialization, n)}.
-The graph in figure shows the difference in runtime between core 8 and core 0
-with a code segment of increasing size.
+The graph in figure ~\ref{fig:runtime-difference} shows the difference in runtime 
+between core 8 and core 0 with respect to the size of the code segment. Excluding a
+negligible number of outliers, the samples collected clearly highlighted a performance 
+degradation beyond approximately 512KiB, with core 8 running up to 4 seconds slower
+(9.4\%) in the 3MB area. 512KiB is an interesting number, as it 
+corresponds to the space addressable with 128 iTLB entries using 4KiB pages. 
+Haswell and Broadwell architectures use an iTLB with exactly 128 entries. 
+Beyond 512KiB, a heavily non linear execution flow starts generating an increasingly 
+large number of iTLB misses. Although the reason is not clear, this test pointed
+in the direction of a different behavior of the front-end of the pipeline 
+in handling such events.
+\\
+The test was repeated by making use of the huge pages support of the operating
+system (2MiB). The following commands were used to compile and execute the benchmark
+with a code segment size of 3 MiB.
 
+\begin{lstlisting}
+sysctl vm.nr_hugepages=500
+gcc benchmark.c -o benchmark -O0 -B/usr/share/libhugetlbfs -Wl,--hugetlbfs-align
+hugectl --text ./switch_slowdown_v2 32768
+\end{lstlisting}
+With 2MiB pages, no performance difference was observed between core 8 and the 
+other cores on the system.
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[scale=0.45]{images/runtime_difference.png}
+\end{center}
+\caption{\label{fig:runtime-difference} Runtime difference between core 8 and core 0}
+\end{figure}
 
+\section{Hypothesis disproved so far}
+The following hypothesis have been taken into account so far, without however
+leading to a satisfactory explanation:
 
-
-
-
-
-
-
-
-
+\begin{itemize}
+\item \textit{ksoftirq is using more clock cycles on core 8, therefore there 
+appears to be more interrupt activity (at least top half) on this specific core.}
+\\
+The additional number of cycles spent in \textit{\_\_do\_softirq} does not justify 
+the slowdown observed. The profiles of the benchmark described in section
+\ref{section:benchmark-itlb} with $n = 32000$ show that \textit{\_\_do\_softirq}
+and \textit{do\_softirq} are responsible respectively for 0.08\% and 0.05\% of the 
+additional clock cycles on core 8. The higher number of cycles spent in softirq
+seems to be a consequence rather than a cause. In the Linux kernel the top half 
+of the timer interrupt is implemented with a softirq, so it makes sense to have 
+a higher number softirqs running if the runtime of the benchmark is itself longer
+(1ms jiffie).
+\end{itemize}
 
 
 \begin{appendices}
@@ -257,201 +304,70 @@ with a code segment of increasing size.
 \label{appending:function-recording}
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.35]{images/sin_P8.png}
+\includegraphics[scale=0.33]{images/sin_P8.png}
 \caption{\_\_sin\_avx}
 \end{center}
 \end{figure}
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.35]{images/Post_step_P8.png}
+\includegraphics[scale=0.33]{images/Post_step_P8.png}
 \caption{PostStepGetPhysicalInteractionLength}
 \end{center}
 \end{figure}
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.35]{images/UserStepping_P8.png}
+\includegraphics[scale=0.33]{images/UserStepping_P8.png}
 \caption{UserSteppingAction}
 \end{center}
 \end{figure}
 
 \begin{figure}[H]
 \begin{center}
-\includegraphics[scale=0.35]{images/UpdateForAlongStep_P8.png}
+\includegraphics[scale=0.33]{images/UpdateForAlongStep_P8.png}
 \caption{UpdateStepForAlongStep}
 \end{center}
 \end{figure}
 
-\section{Synthetic Benchmark - Cache misses}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.33]{images/GetZandACrossSection_P8.png}
+\caption{GetZandACrossSection}
+\end{center}
+\end{figure}
 
-\label{appendix:synthetic-benchmark-cache-misses}
-\begin{lstlisting}[caption=Python code which generates the synthetic benchmark]]
-#!/usr/bin/env python
-import tempfile
-import random
-import sys
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.33]{images/GetZandACrossSection_P8.png}
+\caption{GetZandACrossSection}
+\end{center}
+\end{figure}
 
-if __name__ == '__main__':
-    functions = list()
-    for i in range(10000):
-        func_name = "f_{}".format(next(tempfile._get_candidate_names()))
-        sys.stdout.write("void {}() {{\n".format(func_name))
-        sys.stdout.write("    double pi = 3.14, r = 50, h = 100, e = 2.7, res;\n")
-        sys.stdout.write("    res = pi*r*r*h;\n")
-        sys.stdout.write("    res = res/(e*e);\n")
-        sys.stdout.write("}\n")
-        functions.append(func_name)
-    sys.stdout.write("int main() {\n")
-    sys.stdout.write("unsigned int i;\n")
-    sys.stdout.write("for(i =0 ; i < 100000 ;i ++ ){\n")
-    j = 0
-    for i in range(10000):
-        r = random.randint(0, len(functions)-1)
-        sys.stdout.write("{}();\n".format(functions[r]))
-    sys.stdout.write("}\n")
-    sys.stdout.write("}\n")
-\end{lstlisting}
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.33]{images/DistanceToOut_P8.png}
+\caption{DistanceToOut}
+\end{center}
+\end{figure}
 
-Code listed in Appendix ~\ref{appendix:synthetic-benchmark-cache-misses} can be found 
-\href{www.google.it}{online}.
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.33]{images/GetCrossSection_P8.png}
+\caption{GetCrossSection}
+\end{center}
+\end{figure}
 
-\section{Synthetic Benchmark - iTLB misses}
-\label{appendix:synthetic-benchmark-itlb} 
-\begin{lstlisting}[caption=Synthetic benchmark using a code segment of adjustable size, language=c]
-#include <stdint.h>
-#include <stdlib.h>
-#include <time.h>
-#include <memory.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
+\begin{figure}[H]
+\begin{center}
+\includegraphics[scale=0.33]{images/__log10_finite_P8.png}
+\caption{\_\_log10\_finite}
+\end{center}
+\end{figure}
 
-uint64_t max_ip = 0, min_ip = 0;
-uint64_t ip;
-
-#define RNG_LEN 100000
-#define N_ITER 0x2FFFFFFE
-
-#define CASE(N) \
-            case N: \
-            {       \
-                __asm__  volatile("lea 0x0(%%rip), %%rax\n\t"  \
-                  "movq %%rax, %0\n\t" \
-                  : "=m" (ip)           \
-                  : \
-                  : "%rax"); \
-                max_ip = max_ip ^ ((ip ^ max_ip) & -(ip > max_ip)); \
-                break; \
-            }
-#define CASE2(N) \
-            CASE(N) \
-            CASE(N+1)
-
-#define CASE4(N) \
-            CASE2(N) \
-            CASE2(N+2)
-
-#define CASE8(N) \
-            CASE4(N) \
-            CASE4(N+4)
-
-#define CASE16(N) \
-            CASE8(N) \
-            CASE8(N+8)
-
-#define CASE32(N) \
-            CASE16(N) \
-            CASE16(N+16)
-
-#define CASE64(N) \
-            CASE32(N) \
-            CASE32(N+32)
-
-#define CASE128(N) \
-            CASE64(N) \
-            CASE64(N+64)
-
-#define CASE256(N) \
-            CASE128(N) \
-            CASE128(N+128)
-
-#define CASE512(N) \
-            CASE256(N) \
-            CASE256(N+256)
-
-#define CASE1024(N) \
-            CASE512(N) \
-            CASE512(N+512)
-
-#define CASE2048(N) \
-            CASE1024(N) \
-            CASE1024(N+1024)
-
-#define CASE4096(N) \
-            CASE2048(N) \
-            CASE2048(N+2048)
-
-#define CASE8192(N) \
-            CASE4096(N) \
-            CASE4096(N+4096)
-
-#define CASE16384(N) \
-            CASE8192(N) \
-            CASE8192(N+8192)
-
-#define CASE32768(N) \
-            CASE16384(N) \
-            CASE16384(N+16384)
-
-int main(int argc, char* argv[])
-{
-
-    /* boundary is uint32 to support case statements > 65536 */
-    uint32_t boundary, *random_sequence, i, opcode;
-    struct timespec start, end;
-
-    if(argc < 2) {
-        printf("Code segment size must be specified.\n");
-        printf("The size of the code segment is roughly switch_size*89\n");
-        exit(1);
-    }
-    boundary = atoi(argv[1]);
-
-    random_sequence = (uint32_t*)malloc(sizeof(uint32_t)*RNG_LEN);
-    for(i=0; i< RNG_LEN; i++)
-        random_sequence[i] = rand() % boundary;
-
-    clock_gettime(CLOCK_MONOTONIC, &start);
-    __asm__  volatile("lea 0x0(%%rip), %%rax\n\t"
-          "movq %%rax, %0\n\t"
-          : "=m" (ip)
-          :
-          : "%rax");
-    i = 0;
-    min_ip = ip;
-    while(1) {
-        if (i > N_ITER)
-           break;
-        opcode = random_sequence[i % RNG_LEN];
-        switch(opcode)
-        {
-            CASE32768(0);
-        }
-    i++;
-    }
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    double time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec)/1000000000.0;
-    printf("%lu %f %d\n", max_ip - min_ip, time,atoi(argv[1]));
-    return 0;
-}
-\end{lstlisting}
-
-Code listed in Appendix ~\ref{appendix:synthetic-benchmark-itlb} can be found 
-\href{www.google.it}{online}.
 
 \end{appendices}
-\section*{References}
-\bibliography{iopart-num}
-\bibliographystyle{unsrt}
+%\section*{References}
+%\bibliography{iopart-num}
+%\bibliographystyle{unsrt}
 \end{document}
