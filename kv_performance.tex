@@ -31,7 +31,7 @@
     backgroundcolor=\color{lightblue},
     captionpos=b,
     %numbers=left,
-    columns=fullflexible,
+    columns=1,
     keepspaces=true,
     showstringspaces=false,
     stepnumber=1,
@@ -45,60 +45,14 @@
     stringstyle=\color[rgb]{1,0,0}
 }
 
-\begin{abstract}
-With the increasing adoption of cloud resources, public and private, to support
-the demands in terms of computing capacity of the HEP community, WLCG sites have begun
-studying several benchmarking applications aimed at continuously assessing the
-performance of virtual machines procured from commercial providers.
-In order to strongly characterize the behavior of these benchmarks, in-depth
-profiling activities have been carried out. In this document we outline
-our experience in profiling one specific application, ATLAS Kit Validation,
-in an attempt to explain an unexpected distribution of the performance samples
-obtained on systems based on Intel Haswell-EP processors.
-\end{abstract}
+\input{Intro}
 
-\section{ATLAS Kit Validation}
-ATLAS Kit Validation (KV) is the toolkit adopted by the ATLAS collaboration for the
-validation of their software installation in grid sites. The tests include, among
-others, the GEANT4 simulation of the ATLAS detector. A single KV run simulates
-$n$ independent events consisting of a single muon particle propagating through
-the detector. The CPU time needed to simulate each event is recorded and the
-average over the $n$ events is computed as the final benchmark result. In order to
-remove from the measurement the overhead coming from the initialization of the
-software libraries and the configuration of the simulation parameters (detector
-geometry, list of particles, properties of the materials), the first event in the
-sequence is excluded from the final average.
-
-\begin{wrapfigure}{R}{0.5\textwidth}
-\begin{center}
-\includegraphics[scale=0.5]{images/dual-mode-gaussian.png}
-\end{center}
-\caption{\label{dual-mode-gaussian} Distribution of the number of events per 
-second (evt/sec) collected from VMs with 8 virtual CPUs. }
-\end{wrapfigure}
-
-\section{Distribution of the performance samples}
-KV was executed on 240 Haswell-EP hypervisors providing compute
-resources as VMs dedicated to the Tier-0 batch system. The servers were
-fitted with two 8-core Intel Xeon E5-2630v3 processors, with a total number  
-of 32 threads per server with simultaneous multithreading enabled, and 64GiB    
-of DDR4 RAM in fully balanced configuration, with each memory channel populated with
-the same number of DIMMs of equal capacity. All the hypervisors were configured 
-to host 4 VMs providing 8 virtual processing units each, with pairs of VMs 
-confined to separate NUMA domains. KV was executed with 8 parallel processes 
-on each VM, resulting in the full utilization of the hardware threads provided
-by the machine, and the final aggregated result was obtained as the average over 
-the 8 simulation times. The samples collected from the VMs under test resulted in a 
-dual-mode guassian distribution, with a 2\% difference between the 
-mean of the two modes as shown in figure 
-~\ref{dual-mode-gaussian}.
-
-\section{Bare metal results}
-In order to ease the performance analysis, the virtualization layer was
+%\section{Bare metal results}
+In order to ease the performance analysis, the virtualisation layer was
 temporarily removed and Simultaneous Multithreading disabled, running KV on 
 the bare-metal server while setting scheduling affinity sequentially to each physical
 core. The results shown
-in figure ~\ref{kv-runtime} highlighted a 12\% difference in the average simulation
+in Figure~\ref{kv-runtime} highlighted a 12\% difference in the average simulation
 time when binding KV to core 8, the first core of the second processor, i.e. CPU1.
 
 \begin{figure}[b]
@@ -107,9 +61,9 @@ time when binding KV to core 8, the first core of the second processor, i.e. CPU
 \end{center}
 \caption{\label{kv-runtime} Bare-metal KV performance (sec/evt) on each physical core. }
 \end{figure}
-Further tests confirmed the same behavior also with Simultaneous Multithreading 
+Further tests confirmed the same behaviour also with Simultaneous Multithreading 
 on, with slower performance on thread 8 and 24, both belonging to the first core of 
-CPU1. Single thread runs in a virtualized environment showed a 16\%
+CPU1. Single thread runs in a virtualised environment showed a 16\%
 increase in the final average simulation time when running on virtual processors
 corresponding to hardware threads 8 and 24, confirming the 2\%
 spread that stood out from the statistical distribution after averaging the results
