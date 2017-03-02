@@ -1,0 +1,301 @@
+@manual{azure_tech_report,
+  title        = {CERN-IT evaluation of Microsoft Azure cloud IaaS},
+  author       = {Giordano, Domenico and
+                  Cordeiro, Cristovao and
+                  Di Girolamo, Alessandro and
+                  Field, Laurence and
+                  Riahi, Hassen and
+                  Schovancova, Jaroslava and
+                  Valassi, Andrea and
+                  Villazon, Luis},
+  month        = mar,
+  year         = 2016,
+  doi          = {10.5281/zenodo.48495},
+  url          = {https://doi.org/10.5281/zenodo.48495}
+}
+
+@article{chep2015_atos,
+  author={C Cordeiro and A De Salvo and A Di Girolamo and L Field and D Giordano and R Jones and L Villazon},
+  title={Accessing commercial cloud resources within the European Helix Nebula cloud marketplace},
+  journal={Journal of Physics: Conference Series},
+  volume={664},
+  number={2},
+  pages={022019},
+  url={http://stacks.iop.org/1742-6596/664/i=2/a=022019},
+  year={2015},
+  abstract={Helix Nebula - the Science Cloud Initiative - is a public-private partnership between Europe's leading scientific research organisations and European IT cloud providers. CERN contributed to this initiative by providing a flagship use case: the workloads from the ATLAS experiment. Aiming to gain experience in managing and monitoring large-scale deployments, as well as in benchmarking the cloud resources, a sizable Monte Carlo production was performed using the Helix Nebula platform. This contribution describes the Helix Nebula initiative and summarizes the experience and the lessons learned from deploying ATLAS experiment application within large cloud setups involving several commercial providers.}
+}
+
+@article{GEANT4,
+  author={G Cosmo and the Geant4 Collaboration},
+  title={Geant4 - Towards major release 10},
+  journal={Journal of Physics: Conference Series},
+  volume={513},
+  number={2},
+  pages={022005},
+  url={http://stacks.iop.org/1742-6596/513/i=2/a=022005},
+  year={2014},
+  abstract={The Geant4 simulation toolkit has reached maturity in the middle of the previous decade, providing a wide variety of established features coherently aggregated in a software product, which has become the standard for detector simulation in HEP and is used in a variety of other application domains. We review the most recent capabilities introduced in the kernel, highlighting those, which are being prepared for the next major release (version 10.0) that is scheduled for the end of 2013. A significant new feature contained in this release will be the integration of multi-threading processing, aiming at targeting efficient use of modern many-cores system architectures and minimization of the memory footprint for exploiting event-level parallelism. We discuss its design features and impact on the existing API and user-interface of Geant4. Revisions are made to balance the need for preserving backwards compatibility and to consolidate and improve the interfaces; taking into account requirements from the multithreaded extensions and from the evolution of the data processing models of the LHC experiments.}
+}
+
+@article{vcycle,
+  author={A. McNab and P. Love and E. MacMahon},
+  title={Managing virtual machines with Vac and Vcycle},
+  journal={Journal of Physics: Conference Series},
+  volume={664},
+  number={2},
+  pages={022031},
+  url={http://stacks.iop.org/1742-6596/664/i=2/a=022031},
+  year={2015},
+  abstract={We compare the Vac and Vcycle virtual machine lifecycle managers and our experiences in providing production job execution services for ATLAS, CMS, LHCb, and the GridPP VO at sites in the UK, France and at CERN. In both the Vac and Vcycle systems, the virtual machines are created outside of the experiment's job submission and pilot framework. In the case of Vac, a daemon runs on each physical host which manages a pool of virtual machines on that host, and a peer-to-peer UDP protocol is used to achieve the desired target shares between experiments across the site. In the case of Vcycle, a daemon manages a pool of virtual machines on an Infrastructure-as-a-Service cloud system such as OpenStack, and has within itself enough information to create the types of virtual machines to achieve the desired target shares. Both systems allow unused shares for one experiment to temporarily taken up by other experiements with work to be done. The virtual machine lifecycle is managed with a minimum of information, gathered from the virtual machine creation mechanism (such as libvirt or OpenStack) and using the proposed Machine/Job Features API from WLCG. We demonstrate that the same virtual machine designs can be used to run production jobs on Vac and Vcycle/OpenStack sites for ATLAS, CMS, LHCb, and GridPP, and that these technologies allow sites to be operated in a reliable and robust way.}
+}
+
+@misc{asm,
+  title = {Azure Service Management Portal and Service Management API},
+  howpublished = {\url{https://msdn.microsoft.com/en-us/library/jj838706.aspx}},
+  note = {Accessed: 2016-12-07}
+}
+
+@misc{arm,
+  title = {Azure Resource Manager overview},
+  howpublished = {\url{https://docs.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview}},
+  note = {Accessed: 2016-12-07}
+}
+
+@misc{cernvm,
+  title = {CernVM},
+  howpublished = {\url{http://cernvm.cern.ch/}},
+  note = {Accessed: 2016-12-07}
+}
+
+@misc{azure_custom_data,
+  title = {Azure Custom Data},
+  howpublished = {\url{https://azure.microsoft.com/en-us/blog/custom-data-and-cloud-init-on-windows-azure}},
+  note = {Accessed: 2016-12-07}
+}
+
+@misc{cloudinit,
+  title = {Azure Custom Data},
+  howpublished = {\url{https://help.ubuntu.com/community/CloudInit}},
+  note = {Accessed: 2016-12-07}
+}
+
+@misc{terraform,
+  title = {Terraform by HashiCorp},
+  howpublished = {\url{https://www.terraform.io/}},
+  note = {Accessed: 2017-01-12}
+}
+
+@misc{slipstream,
+  title = {SlipStream Smart Cloud Application Management},
+  howpublished = {\url{http://sixsq.com/products/slipstream/index.html}},
+  note = {Accessed: 2017-01-17}
+}
+
+@misc{flume,
+  title = {Apache Flume},
+  howpublished = {\url{https://flume.apache.org/}},
+  note = {Accessed: 2017-01-19}
+}
+
+@article{chepganglia,
+  author={C Cordeiro and A Di Girolamo and D Giordano and L Field and D Spiga and L Villazon},
+  title={Monitoring the delivery of virtualized resources to the LHC experiments},
+  journal={Journal of Physics: Conference Series},
+  volume={664},
+  number={2},
+  pages={022013},
+  url={http://stacks.iop.org/1742-6596/664/i=2/a=022013},
+  year={2015},
+  abstract={The adoption of cloud technologies by the LHC experiments places the fabric management burden of monitoring virtualized resources upon the VO. In addition to monitoring the status of the virtual machines and triaging the results, it must be understood if the resources actually provided match with any agreements relating to the supply. Monitoring the instantiated virtual machines is therefore a fundamental activity and hence this paper describes how the Ganglia monitoring system can be used for the cloud computing resources of the LHC experiments. Expanding upon this, it is then shown how the integral of the time-series monitoring data obtained can be re-purposed to provide a consumer-side accounting record, which can then be compared with the concrete agreements that exist between the supplier of the resources and the consumer. From this alone, it is not clear though how the performance of the resources differ both within and between providers. Hence, the case is made for a benchmarking metric to normalize the data along with some results from a preliminary investigation on obtaining such a metric.}
+}
+
+@article{bmk,
+    author  = "Giordano, D and others",
+    title   = "Benchmarking Cloud Resources for HEP",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@article{cloud-cern,
+    author  = "Giordano, D and others",
+    title   = "CERN Computing in Commercial Clouds",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@article{dam,
+    author  = "Cordeiro, C and others",
+    title   = "Real-time complex event processing for cloud resources",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@article{uma,
+    author  = "Karavakis, E and others",
+    title   = "Unified Monitoring Architecture for IT and Grid Services",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@article{db12,
+    author  = "Charpentier, P and others",
+    title   = "Benchmarking worker nodes using LHCb simulation productions and comparing with HEP-Spec06",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@article{lemon,
+  author={Babik Marian and Fedorko Ivan and Hook Nicholas and Lansdale Thomas Hector and Lenkes Daniel and Siket Miroslav and Waldron
+Denis},
+  title={LEMON - LHC Era Monitoring for Large-Scale Infrastructures},
+  journal={J. Phys.: Conf. Ser.},
+  volume={331},
+  number={5},
+  pages={052025},
+  url={http://stacks.iop.org/1742-6596/331/i=5/a=052025},
+  year={2011},
+  abstract={At the present time computer centres are facing a massive rise in virtualization and cloud computing as these solutions bring advantages to service providers and consolidate the computer centre resources. However, as a result the monitoring complexity is increasing. Computer centre management requires not only to monitor servers, network equipment and associated software but also to collect additional environment and facilities data (e.g. temperature, power consumption, cooling efficiency, etc.) to have also a good overview of the infrastructure performance. The LHC Era Monitoring (Lemon) system is addressing these requirements for a very large scale infrastructure. The Lemon agent that collects data on every client and forwards the samples to the central measurement repository provides a flexible interface that allows rapid development of new sensors. The system allows also to report on behalf of remote devices such as switches and power supplies. Online and historical data can be visualized via a web-based interface or retrieved via command-line tools. The Lemon Alarm System component can be used for notifying the operator about error situations. In this article, an overview of the Lemon monitoring is provided together with a description of the CERN LEMON production instance. No direct comparison is made with other monitoring tool.}
+}
+
+@article{xbatch,
+    author  = "Jones, B and others",
+    title   = "Future approach to tier-0 extension",
+    journal = {to appear in J. Phys.: Conf. Ser.},
+    year    = {2016}
+}
+
+@techreport{bigpanda,
+      author        = "Schovancova, J and De, K and Klimentov, A and Love, P and
+                       Potekhin, M and Wenaus, T",
+      title         = "{The next generation of the ATLAS PanDA Monitoring
+                       System}",
+      institution   = "CERN",
+      address       = "Geneva",
+      number        = "ATL-SOFT-PROC-2014-003",
+      month         = "Apr",
+      year          = "2014",
+      reportNumber  = "ATL-SOFT-PROC-2014-003",
+      url           = "https://cds.cern.ch/record/1695129",
+}
+
+@article{monalisa,
+      author         = "Newman, H. B. and Legrand, I. C. and Galvez, P. and
+                        Voicu, R. and Cirstoiu, C.",
+      title          = "{MonALISA : A Distributed monitoring service
+                        architecture}",
+      booktitle      = "{Proceedings, 13th International Conference on Computing
+                        in High-Enery and Nuclear Physics (CHEP 2003): La Jolla,
+                        California, March 24-28, 2003}",
+      journal        = "eConf",
+      volume         = "C0303241",
+      year           = "2003",
+      pages          = "MOET001",
+      eprint         = "cs/0306096",
+      archivePrefix  = "arXiv",
+      primaryClass   = "cs-dc",
+      reportNumber   = "CHEP-2003-MOET001",
+      SLACcitation   = "%%CITATION = CS/0306096;%%"
+}
+
+@article{dashboard,
+  author={J Andreeva and M Cinquilli and D Dieguez and I Dzhunov and E Karavakis and P Karhula and M Kenyon and L Kokoszkiewicz and M
+Nowotka and G Ro and P Saiz and L Sargsyan and J Schovancova and D Tuckett},
+  title={Experiment Dashboard - a generic, scalable solution for monitoring of the LHC computing activities, distributed sites and services},
+  journal={Journal of Physics: Conference Series},
+  volume={396},
+  number={3},
+  pages={032093},
+  url={http://stacks.iop.org/1742-6596/396/i=3/a=032093},
+  year={2012},
+  abstract={The Experiment Dashboard system provides common solutions for monitoring job processing, data transfers and site/service usability. Over the last seven years, it proved to play a crucial role in the monitoring of the LHC computing activities, distributed sites and services. It has been one of the key elements during the commissioning of the distributed computing systems of the LHC experiments. The first years of data taking represented a serious test for Experiment Dashboard in terms of functionality, scalability and performance. And given that the usage of the Experiment Dashboard applications has been steadily increasing over time, it can be asserted that all the objectives were fully accomplished.}
+}
+
+@article{amq,
+  author={L Magnoni},
+  title={Modern Messaging for Distributed Sytems},
+  journal={J. Phys.: Conf. Ser.},
+  volume={608},
+  number={1},
+  pages={012038},
+  url={http://stacks.iop.org/1742-6596/608/i=1/a=012038},
+  year={2015},
+  abstract={Modern software applications rarely live in isolation and nowadays it is common practice to rely on services or consume information provided by remote entities. In such a distributed architecture, integration is key. Messaging, for more than a decade, is the reference solution to tackle challenges of a distributed nature, such as network unreliability, strong-coupling of producers and consumers and the heterogeneity of applications. Thanks to a strong community and a common effort towards standards and consolidation, message brokers are today the transport layer building blocks in many projects and services, both within the physics community and outside. Moreover, in recent years, a new generation of messaging services has appeared, with a focus on low-latency and high-performance use cases, pushing the boundaries of messaging applications. This paper will present messaging solutions for distributed applications going through an overview of the main concepts, technologies and services.}
+}
+
+@misc{CERN:2016:DB12,
+	  title = {Dirac Benchmark 2012},
+	  howpublished = {\url{gitlab.cern.ch/mcnab/dirac-benchmark/tree/master}},
+	  organization = {CERN}
+}
+
+@misc{Apache:2016:ActiveMQ,
+	  title = {Apache ActiveMQ},
+	  howpublished = {\url{activemq.apache.org/}},
+	  organization = {Apache}
+}
+
+@misc{elastic:2016:elasticsearch,
+	  author =  {Elastic},
+	  title = {Elasticsearch Reference},
+	  howpublished = {\url{https://elastic.co/guide/en/elasticsearch/reference/current/index.html}}
+}
+
+@misc{Jupyter,
+  organization = {NUMFocus},
+	  title = {Jupyter},
+	  howpublished = {\url{http://jupyter.org/}}
+}
+@misc{elastic:2016:kibana,
+	  author =  {Elastic},
+	  title = {Kibana User Guide},
+	  howpublished = {\url{https://elastic.co/guide/en/kibana/current/index.html}}
+}
+
+@misc{numfocus:2016:pandas,
+	  title = {Python Data Analysis Library},
+	  howpublished = {\url{pandas.pydata.org/}},
+	  organization = {NUMFocus}
+}
+
+@misc{HEPiX:2014:HEPiX,
+	  title = {HEPiX Benchmarking Working Group},
+	  howpublished = {\url{www.hepix.org/e10227/e10327/e10325}},
+	  organization = {HEPiX},
+}
+
+@article{KV,
+  author={Alessandro De Salvo and Franco Brasolin},
+  title={Benchmarking the ATLAS software through the Kit Validation engine},
+  journal={Journal of Physics: Conference Series},
+  volume={219},
+  number={4},
+  pages={042037},
+  url={http://stacks.iop.org/1742-6596/219/i=4/a=042037},
+  year={2010},
+  abstract={The measurement of the experiment software performance is a very important metric in order to choose the most effective resources to be used and to discover the bottlenecks of the code implementation. In this work we present the benchmark techniques used to measure the ATLAS software performance through the ATLAS offline testing engine Kit Validation and the online portal Global Kit Validation. The performance measurements, the data collection, the online analysis and display of the results will be presented. The results of the measurement on different platforms and architectures will be shown, giving a full report on the CPU power and memory consumption of the Monte Carlo generation, simulation, digitization and reconstruction of the most CPU-intensive channels. The impact of the multi-core computing on the ATLAS software performance will also be presented, comparing the behavior of different architectures when increasing the number of concurrent processes. The benchmark techniques described in this paper have been used in the HEPiX group since the beginning of 2008 to help defining the performance metrics for the High Energy Physics applications, based on the real experiment software.}
+}
+
+@InProceedings{ mckinney-proc-scipy-2010,
+  author    = { Wes McKinney },
+  title     = { Data Structures for Statistical Computing in Python },
+  booktitle = { Proceedings of the 9th Python in Science Conference },
+  pages     = { 51 - 56 },
+  year      = { 2010 },
+  editor    = { St\'efan van der Walt and Jarrod Millman }
+}
+
+@article{Michelotto:2010zz,
+      author         = "Michelotto, Michele and others",
+      title          = "{A comparison of HEP code with SPEC benchmarks on
+                        multi-core worker nodes}",
+      booktitle      = "{Proceedings, 17th International Conference on Computing
+                        in High Energy and Nuclear Physics (CHEP 2009): Prague,
+                        Czech Republic, March 21-27, 2009}",
+      journal        = "J. Phys. Conf. Ser.",
+      volume         = "219",
+      year           = "2010",
+      pages          = "052009",
+      doi            = "10.1088/1742-6596/219/5/052009",
+      SLACcitation   = "%%CITATION = 00462,219,052009;%%"
+}
