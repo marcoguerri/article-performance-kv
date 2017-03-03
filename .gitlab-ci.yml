@@ -12,3 +12,4 @@ buildpdf:
     paths:
       - $CI_PROJECT_DIR 
     expire_in: '1 day'
+    when: always
