@@ -7,7 +7,8 @@ buildpdf:
   script:
     - cd $CI_PROJECT_DIR
     - pdflatex -interaction=nonstopmode kv_performance.tex ; bibtex kv_performance ; pdflatex -interaction=nonstopmode kv_performance.tex
-    
+  allow_failure: true  
   artifacts:
     paths:
       - $CI_PROJECT_DIR 
+    expire_in: '1 day'
