@@ -2,7 +2,7 @@ stages:
   - pdflatex
 
 buildpdf:
-  image: gitlab-registry.cern.ch/cloud-infrastructure/chep-dam
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:latex-cc7 
   stage: pdflatex
   script:
     - cd $CI_PROJECT_DIR
