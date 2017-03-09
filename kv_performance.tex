@@ -1,7 +1,7 @@
 \documentclass[a4paper]{jpconf}
 \usepackage{graphicx}
-\usepackage{draftwatermark}
-\usepackage[margin=0.8in]{geometry}
+%\usepackage{draftwatermark}
+\usepackage[margin=0.7in]{geometry}
 \usepackage{lmodern}% http://ctan.org/pkg/lm
 \usepackage{listings}
 \usepackage[utf8]{inputenc}
@@ -14,6 +14,8 @@
 \usepackage{changepage}
 \usepackage{caption}
 \usepackage{color}
+\usepackage{beramono}
+\usepackage{xcolor}
 \usepackage{courier}
 \usepackage{subcaption}
 \usepackage{hyperref}\begin{document}
@@ -22,29 +24,50 @@
 \author{M Guerri$^1$, D Giordano$^1$, C Cordeiro$^1$}
 \address{$^1$ CERN}
 \ead{marco.guerri@cern.ch}
-\SetWatermarkText{DRAFT}
-\definecolor{lightblue}{gray}{0.95}
+%\SetWatermarkText{DRAFT}
+\definecolor{lightblue}{gray}{0.96}
 
 \lstset{
     language=Python,
-    basicstyle=\sffamily,
+    basicstyle=\ttfamily\scriptsize,
     tabsize=2,
     backgroundcolor=\color{lightblue},
     captionpos=b,
-    %numbers=left,
-    columns=1,
+    columns=fixed,
+    numbers=left,
+    columns=fullflexible,
     keepspaces=true,
     showstringspaces=false,
     stepnumber=1,
-    numberstyle=\scriptsize,
+    numberstyle=\zebra{lightblue}{white},
     numbersep=5pt,
     frame=lines,
     escapeinside={£}{£},
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
     breaklines=true,
     keywordstyle=\color[rgb]{0,0,1},
     commentstyle=\color[rgb]{0.133,0.545,0.133},
     stringstyle=\color[rgb]{1,0,0}
 }
+\newcommand\realnumberstyle[1]{}
+
+\makeatletter
+\newcommand{\zebra}[3]{%
+    {\realnumberstyle{#3}}%
+    \begingroup
+    \lst@basicstyle
+    \ifodd\value{lstnumber}%
+        \color{#1}%
+    \else
+        \color{#2}%
+    \fi
+        \rlap{\hspace*{\lst@numbersep}%
+        \color@block{\linewidth}{\ht\strutbox}{\dp\strutbox}%
+        }%
+    \endgroup
+}
+\makeatother
+
 
 \input{intro}
 
@@ -56,7 +79,7 @@ core. The results shown
 in Figure~\ref{kv-runtime} highlighted a 12\% difference in the average simulation
 time when binding KV to core 8, the first core of the second processor, i.e. CPU1.
 
-\begin{figure}[b]
+\begin{figure}[h]
 \begin{center}
 \includegraphics[scale=0.3]{images/kv_runtime.png}
 \end{center}
@@ -119,24 +142,82 @@ The best solution found to implement unbuffered I/O to log files was to set
 ends of the pipe. 
 \\
 The profile of the execution was obtained with \textit{perf record} . 
-Results for core 8 
-and core 0 are shown respectively in figure ~\ref{event-73-processor8} and 
-figure ~\ref{event-73-processor0} (limiting the output to the functions that
-account for more than 1\% of the runtime). 
+Results for core 0 
+and core 8 are shown respectively in listing ~\ref{event-73-processor0} and 
+listing ~\ref{event-73-processor8} (limiting the output to functions that
+contribute for more than 1\% of the runtime). 
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.45]{images/Event73_Processor8.png}
-\end{center}
-\caption{\label{event-73-processor8} Recording of event 73 on core 8}
-\end{figure}
+\begin{lstlisting}[language=Bash,float,caption=Recording of event 73 on core 0, label=event-73-processor0]
+# Total Lost Samples: 0
+#
+# Samples: 125K of event ' cycles:pp'
+# Event count (approx.): 99035639955
+#
+# Overhead  Command    Shared Object          Symbol                                            
+#
+    12.72%  athena.py  libm-2.17.so           [.] __ieee754_log_avx
+     7.36%  athena.py  libm-2.17.so           [.] __ieee754_exp_avx
+     5.51%  athena.py  libG4global.so         [.] G4PhysicsVector::Value
+     3.64%  athena.py  libG4processes.so      [.] G4UniversalFluctuation::SampleFluctuations
+     3.25%  athena.py  libm-2.17.so           [.] __GI___exp
+     2.67%  athena.py  libm-2.17.so           [.] __sin_avx
+     2.54%  athena.py  libMagFieldServices.so [.] BFieldCache::getB
+     2.26%  athena.py  libG4tracking.so       [.] G4SteppingManager::DefinePhysicalStepLength
+     2.13%  athena.py  libm-2.17.so           [.] __cos_avx
+     1.81%  athena.py  libG4geometry.so       [.] G4Navigator::LocateGlobalPointWithinVolume
+     1.69%  athena.py  libG4tracking.so       [.] G4SteppingManager::InvokePSDIP
+     1.62%  athena.py  libm-2.17.so           [.] __log10_finite
+     1.46%  athena.py  libm-2.17.so           [.] __sincos
+     1.45%  athena.py  libG4geometry.so       [.] G4PropagatorInField::ComputeStep
+     1.28%  athena.py  libG4processes.so      [.] G4UrbanMscModel93::SampleCosineTheta
+     1.26%  athena.py  libG4tracking.so       [.] G4SteppingManager::Stepping
+     1.17%  athena.py  libG4geometry.so       [.] G4AtlasRK4::Stepper
+     1.14%  athena.py  libG4processes.so      [.] G4VEnergyLossProcess::PostStepGetPhysicalInter
+     1.06%  athena.py  libG4processes.so      [.] G4ElectroNuclearCrossSection::GetZandACrossSec
+\end{lstlisting}
 
-\begin{figure}[h]
-\begin{center}
-\includegraphics[scale=0.45]{images/Event73_Processor0.png}
-\end{center}
-\caption{\label{event-73-processor0} Recording of event 73 on core 0}
-\end{figure}
+\begin{lstlisting}[float,caption=Recording of event 73 on core 8, label=event-73-processor8]
+# Total Lost Samples: 0
+#
+# Samples: 141K of event ' cycles:pp'
+# Event count (approx.): 111860905419
+#
+# Overhead  Command    Shared Object                      Symbol                                                                                         
+#
+    11.38%  athena.py  libm-2.17.so           [.] __ieee754_log_avx
+     6.44%  athena.py  libm-2.17.so           [.] __ieee754_exp_avx
+     4.90%  athena.py  libG4global.so         [.] G4PhysicsVector::Value
+     3.38%  athena.py  libG4processes.so      [.] G4UniversalFluctuation::SampleFluctuations
+     2.88%  athena.py  libm-2.17.so           [.] __GI___exp
+     2.64%  athena.py  libm-2.17.so           [.] __sin_avx
+     2.51%  athena.py  libMagFieldServices.so [.] BFieldCache::getB
+     1.93%  athena.py  libG4tracking.so       [.] G4SteppingManager::DefinePhysicalStepLength
+     1.83%  athena.py  libm-2.17.so           [.] __cos_avx
+     1.78%  athena.py  libG4geometry.so       [.] G4Navigator::LocateGlobalPointWithinVolume
+     1.59%  athena.py  libm-2.17.so           [.] __log10_finite
+     1.45%  athena.py  libG4tracking.so       [.] G4SteppingManager::InvokePSDIP
+     1.37%  athena.py  libG4geometry.so       [.] G4PropagatorInField::ComputeStep
+     1.36%  athena.py  libm-2.17.so           [.] __sincos
+     1.28%  athena.py  libG4processes.so      [.] G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength
+     1.18%  athena.py  libG4tracking.so       [.] G4SteppingManager::Stepping
+     1.15%  athena.py  libG4processes.so      [.] G4UrbanMscModel93::SampleCosineTheta
+     1.01%  athena.py  libG4tracking.so       [.] G4SteppingManager::InvokeAlongStepDoItProcs
+     1.01%  athena.py  libG4geometry.so       [.] G4AtlasRK4::Stepper
+
+\end{lstlisting}
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[scale=0.45]{images/Event73_Processor8.png}
+%\end{center}
+%\caption{\label{event-73-processor8} Recording of event 73 on core 8}
+%\end{figure}
+
+%\begin{figure}[h]
+%\begin{center}
+%\includegraphics[scale=0.45]{images/Event73_Processor0.png}
+%\end{center}
+%\caption{\label{event-73-processor0} Recording of event 73 on core 0}
+%\end{figure}
 
 Excluding the higher number of events
 (unhalted core cycles) on core 8, which was expected due to the longer runtime,
@@ -149,27 +230,47 @@ in table ~\ref{major-contributors}.
 \begin{table}
 \begin{center}
 \begin{tabular}{ | l | l |}
-    \hline
-	\_\_sin\_avx & 4.14\% \\
-	\hline
-	G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength & 2.40\% \\
-    \hline
- 	FADS::FadsSteppingAction::UserSteppingAction & 2.26\% \\
-    \hline
-	G4Transportation::AlongStepGetPhysicalInteractionLength & 2.18\% \\
-    \hline
-	G4ParticleChangeForTransport::UpdateStepForAlongStep & 2.07\% \\
-    \hline
-	MagField::AtlasFieldSvc::getField & 1.86\% \\
-    \hline
-	G4ElectroNuclearCrossSection::GetZandACrossSection	& 1.85\% \\
-	\hline
-	G4Tubs::DistanceToOut & 1.62\% \\
-	\hline
-	G4CrossSectionDataStore::GetCrossSection & 1.59\% \\
-	\hline
-	\_\_log10\_finite &	1.53\% \\
-	\hline
+  \hline
+  G4StepLimiter::PostStepGetPhysicalInteractionLength &  2.67\% \\
+  \hline 
+  \_\_sin\_avx & 2.45\% \\
+  \hline
+  G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength & 2.37\% \\
+  \hline
+  FADS::FadsSteppingAction::UserSteppingAction & 2.33\% \\
+  \hline
+  \_ZN12G4FieldTrackC1ERKN5CLHEP10Hep3VectorES3\_ddddddPS2\_@plt & 2.27\% \\
+  \hline
+  BFieldCache::getB & 2.22\% \\
+  \hline
+  \_ZN11TrackHelperC1EPK7G4Track@plt & 2.08\% \\
+  \hline
+  G4CrossSectionDataStore::GetCrossSection & 2.06\% \\
+  \hline
+  G4SteppingManager::InvokeAlongStepDoItProcs & 2.01\% \\
+  \hline
+  G4Transportation::AlongStepGetPhysicalInteractionLength & 1.85\% \\
+  \hline
+  G4FieldTrack::G4FieldTrack & 1.69\% \\
+  \hline
+  std::\_Rb\_tree\_increment & 1.66\% \\
+  \hline
+  G4Mag\_EqRhs::SetChargeMomentumMass & 1.63\% \\
+  \hline
+  G4Navigator::LocateGlobalPointWithinVolume & 1.56\% \\
+  \hline
+  G4ParticleChangeForTransport::UpdateStepForAlongStep & 1.43\% \\
+  \hline
+  \_\_log10\_finite & 1.39\% \\
+  \hline
+  G4VDiscreteProcess::PostStepGetPhysicalInteractionLength & 1.38\% \\
+  \hline
+  FADS::MagneticFieldMap::GetFieldValue & 1.38\% \\
+  \hline
+  FADS::MagneticFieldMapT$\langle$G4AtlasFieldSvc$\rangle$::FieldValue & 1.33\% \\
+  \hline
+  G4UniversalFluctuation::SampleFluctuations & 1.33\% \\
+  \hline
 \end{tabular}
 \end{center}
 \caption{Major contributors to the additional runtime on core 8 (percentage
@@ -181,11 +282,7 @@ of the additional clock cycles) }
 After having obtained the list in table ~\ref{major-contributors}, the 
 top contributors to the additional runtime were profiled to obtain
 a detailed breakdown of the weight of each assembly instruction in terms of 
-clock cycles. The recordings of \textit{\_\_sin\_avx}, 
-\textit{PostStepGetPhysicalInteractionLength}, \textit{UserSteppingAction},
-\textit{UpdateStepForAlongStep}, \textit{GetZandACrossSection},
-\textit{DistanceToOut}, \textit{GetCrossSection} and \textit{\_\_log10\_finite}
- are reported in Appendix  
+clock cycles. The most relevant recordings are reported in Appendix  
 ~\ref{appending:function-recording}. The results highlighted an interesting 
 pattern on most of the major contributors:  it appeared that an unexpectedly 
 large number of cycles was attributed to the initial instructions of each function.
@@ -278,57 +375,193 @@ other cores on the system.
 \caption{\label{fig:runtime-difference} Runtime difference between core 8 and core 0}
 \end{figure}
 
-\section{Hypothesis disproved so far}
-The following hypothesis have been taken into account so far, without however
-leading to a satisfactory explanation:
+%\section{Hypothesis disproved so far}
+%The following hypothesis have been taken into account so far, without however
+%leading to a satisfactory explanation:
 
-\begin{itemize}
-\item \textit{ksoftirq is using more clock cycles on core 8, therefore there 
-appears to be more interrupt activity (at least top half) on this specific core.}
-\\
-The additional number of cycles spent in \textit{\_\_do\_softirq} does not justify 
-the slowdown observed. The profiles of the benchmark described in section
-\ref{section:benchmark-itlb} with $n = 32000$ show that \textit{\_\_do\_softirq}
-and \textit{do\_softirq} are responsible respectively for 0.08\% and 0.05\% of the 
-additional clock cycles on core 8. The higher number of cycles spent in softirq
-seems to be a consequence rather than a cause. In the Linux kernel the top half 
-of the timer interrupt is implemented with a softirq, so it makes sense to have 
-a higher number softirqs running if the runtime of the benchmark is itself longer
-(1ms jiffie).
-\end{itemize}
+%\begin{itemize}
+%\item \textit{ksoftirq is using more clock cycles on core 8, therefore there 
+%appears to be more interrupt activity (at least top half) on this specific core.}
+%\\
+%The additional number of cycles spent in \textit{\_\_do\_softirq} does not justify 
+%the slowdown observed. The profiles of the benchmark described in section
+%\ref{section:benchmark-itlb} with $n = 32000$ show that \textit{\_\_do\_softirq}
+%and \textit{do\_softirq} are responsible respectively for 0.08\% and 0.05\% of the 
+%additional clock cycles on core 8. The higher number of cycles spent in softirq
+%seems to be a consequence rather than a cause. In the Linux kernel the top half 
+%of the timer interrupt is implemented with a softirq, so it makes sense to have 
+%a higher number softirqs running if the runtime of the benchmark is itself longer
+%(1ms jiffie).
+%\end{itemize}
 
-
+\newpage
+\newpage
 \begin{appendices}
 
-\section{Function recordings}
-\label{appending:function-recording}
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/sin_P8.png}
-\caption{\_\_sin\_avx}
-\end{center}
-\end{figure}
+\section{Function annotations}
+%\label{appending:function-recording}
+%\begin{figure}[H]
+%\begin{center}
+%\includegraphics[scale=0.33]{images/sin_P8.png}
+%\caption{\_\_sin\_avx}
+%\end{center}
+%\end{figure}
+\begin{lstlisting}[basicstyle=\ttfamily\tiny, 
+caption=G4StepLimiter::PostStepGetPhysicalInteractionLength cycles annotation]
+Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
+-----------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      000000000032fab0 <G4StepLimiter::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4ForceCondition*)>:
+         :      _ZN13G4StepLimiter36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
+   39.78 :        32fab0:       push   %rbx
+    0.12 :        32fab1:       movl   $0x2,(%rdx)
+         :      _ZNK7G4Track9GetVolumeEv():
+    0.00 :        32fab7:       xor    %eax,%eax
+         :      _ZNK24G4ReferenceCountedHandleI12G4VTouchableEcvbEv():
+    0.73 :        32fab9:       mov    0x40(%rsi),%rdx
+         :      _ZN13G4StepLimiter36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
+    0.24 :        32fabd:       mov    %rsi,%rbx
+         :      _ZNK7G4Track9GetVolumeEv():
+    2.57 :        32fac0:       test   %rdx,%rdx
+    0.00 :        32fac3:       je     32fad1 <G4StepLimiter::PostStepGetPhysicalInteractionLength(G4Track const&, double, ...)+0x21>
+         :      _ZNK24G4ReferenceCountedHandleI12G4VTouchableEptEv():
+    5.88 :        32fac5:       mov    0x8(%rdx),%rdi
+         :      _ZNK7G4Track9GetVolumeEv():
+    0.24 :        32fac9:       xor    %esi,%esi
+    7.47 :        32facb:       mov    (%rdi),%rax
+    4.04 :        32face:       callq  *0x20(%rax)
+    9.06 :        32fad1:       mov    0x28(%rax),%rax
+   10.04 :        32fad5:       mov    0x40(%rax),%rdi
+         :      _ZNK15G4LogicalVolume13GetUserLimitsEv():
+    0.00 :        32fad9:       test   %rdi,%rdi
+    0.61 :        32fadc:       je     32faf8 <G4StepLimiter::PostStepGetPhysicalInteractionLength(G4Track const&, double, ...)+0x48>
+         :      _ZN13G4StepLimiter36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
+    0.00 :        32fade:       mov    (%rdi),%rax
+    [...]
+\end{lstlisting}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/Post_step_P8.png}
-\caption{PostStepGetPhysicalInteractionLength}
-\end{center}
-\end{figure}
+\begin{lstlisting}[basicstyle=\ttfamily\tiny, 
+caption=\_\_sin\_avx cycles annotation]
+Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
+------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      0000000000064a30 <__sin_avx>:
+         :      __sin_avx():
+    6.73 :        64a30:       push   %r12
+   24.77 :        64a32:       vmovapd %xmm0,%xmm2
+    4.10 :        64a36:       push   %rbp
+    1.23 :        64a37:       push   %rbx
+    0.00 :        64a38:       sub    $0x70,%rsp
+    0.70 :        64a3c:       vstmxcsr 0x50(%rsp)
+    2.01 :        64a42:       mov    0x50(%rsp),%ebx
+    0.00 :        64a46:       mov    %ebx,%eax
+    0.67 :        64a48:       and    $0x9f,%ah
+    0.59 :        64a4b:       cmp    %eax,%ebx
+    0.00 :        64a4d:       mov    %eax,0x60(%rsp)
+    0.32 :        64a51:       jne    6682b <__sin_avx+0x1dfb>
+    0.00 :        64a57:       xor    %ebp,%ebp
+    0.00 :        64a59:       vmovsd %xmm2,(%rsp)
+    0.03 :        64a5e:       mov    (%rsp),%rdx
+    0.35 :        64a62:       mov    %rdx,%rcx
+    0.00 :        64a65:       sar    $0x20,%rcx
+    0.00 :        64a69:       mov    %ecx,%eax
+    0.00 :        64a6b:       and    $0x7fffffff,%eax
+    0.32 :        64a70:       cmp    $0x3e4fffff,%eax
+    0.00 :        64a75:       jle    64b10 <__sin_avx+0xe0>
+    0.00 :        64a7b:       cmp    $0x3fcfffff,%eax
+    0.00 :        64a80:       jg     64b30 <__sin_avx+0x100>
+    0.05 :        64a86:       vmovapd %xmm2,%xmm3
+    [...]
+\end{lstlisting}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/UserStepping_P8.png}
-\caption{UserSteppingAction}
-\end{center}
-\end{figure}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/UpdateForAlongStep_P8.png}
-\caption{UpdateStepForAlongStep}
-\end{center}
-\end{figure}
+
+%\begin{figure}[H]
+%\begin{center}
+%\includegraphics[scale=0.33]{images/Post_step_P8.png}
+%\caption{PostStepGetPhysicalInteractionLength}
+%\end{center}
+%\end{figure}
+
+\begin{lstlisting}[basicstyle=\ttfamily\tiny, language=html,
+caption=G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength cycles annotation]
+Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
+-----------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      00000000003c77b0 <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4ForceCondition*
+         :      _ZN20G4VEnergyLossProcess36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
+   15.07 :        3c77b0:       push   %r14
+    0.00 :        3c77b2:       movapd %xmm0,%xmm3
+    0.17 :        3c77b6:       push   %r13
+    0.11 :        3c77b8:       push   %r12
+    0.28 :        3c77ba:       push   %rbp
+    0.00 :        3c77bb:       push   %rbx
+    0.11 :        3c77bc:       mov    %rdi,%rbx
+    0.50 :        3c77bf:       sub    $0x50,%rsp
+         :      _ZNK7G4Track21GetMaterialCutsCoupleEv():
+    0.17 :        3c77c3:       mov    0x78(%rsi),%rax
+         :      _ZN20G4VEnergyLossProcess36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
+    0.06 :        3c77c7:       movl   $0x2,(%rdx)
+         :      _ZNK7G4Track21GetMaterialCutsCoupleEv():
+    0.94 :        3c77cd:       mov    0x10(%rax),%rax
+    1.32 :        3c77d1:       mov    0x68(%rax),%rax
+         :      _ZN20G4VEnergyLossProcess14DefineMaterialEPK20G4MaterialCutsCouple():
+    0.50 :        3c77d5:       cmp    0x3c0(%rdi),%rax
+    1.16 :        3c77dc:       je     3c780c <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4Fo
+    1.82 :        3c77de:       mov    0x10(%rax),%rdx
+    0.00 :        3c77e2:       mov    %rax,0x3c0(%rdi)
+    [...]
+\end{lstlisting}
+
+%\begin{figure}[H]
+%\begin{center}
+%\includegraphics[scale=0.33]{images/UserStepping_P8.png}
+%\caption{UserSteppingAction}
+%\end{center}
+%\end{figure}
+
+
+\begin{lstlisting}[basicstyle=\ttfamily\tiny, language=bash,
+caption=FADS::FadsSteppingAction::UserSteppingAction cycles annotation]
+Percent |      Source code & Disassembly of libFadsActions.so for  cycles:pp
+-----------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      00000000000087f0 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)>:
+         :      _ZN4FADS18FadsSteppingAction18UserSteppingActionEPK6G4Step():
+   28.47 :        87f0:       push   %r12
+    0.00 :        87f2:       push   %rbp
+    0.10 :        87f3:       mov    %rdi,%rbp
+    0.10 :        87f6:       push   %rbx
+    0.19 :        87f7:       mov    %rsi,%rbx
+    0.00 :        87fa:       sub    $0x20,%rsp
+    8.30 :        87fe:       cmpb   $0x0,0x8fa3(%rip)    # 117a8 <guard variable for FADS::FadsSteppingAction::UserSteppingAction(...)::act>
+    0.58 :        8805:       je     8900 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0x110>
+    2.99 :        880b:       cmpb   $0x0,0x8d8e(%rip)    # 115a0 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)::first>
+    0.97 :        8812:       jne    8960 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0x170>
+    0.68 :        8818:       mov    0x8f91(%rip),%rax    # 117b0 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)::act>
+   11.87 :        881f:       mov    -0x18(%rax),%rsi
+    0.00 :        8823:       test   %rsi,%rsi
+    0.87 :        8826:       je     88a5 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0xb5>
+    0.00 :        8828:       mov    0x8891(%rip),%r12    # 110c0 <_DYNAMIC+0x388>
+    0.00 :        882f:       add    $0xf,%rsi
+    0.00 :        8833:       mov    %rsp,%rdi
+    0.00 :        8836:       lea    0x18(%r12),%rax
+    0.00 :        883b:       mov    %rax,(%rsp)
+    0.00 :        883f:       callq  6908 <std::string::reserve(unsigned long)@plt>
+    0.00 :        8844:       lea    0x55d2(%rip),%rsi    # de1d <typeinfo name for FADS::FadsStackingAction+0x2d>
+    [...]
+\end{lstlisting}
+
+%\begin{figure}[H]
+%\begin{center}
+%\includegraphics[scale=0.33]{images/UpdateForAlongStep_P8.png}
+%\caption{UpdateStepForAlongStep}
+%\end{center}
+%\end{figure}
 
 \begin{figure}[H]
 \begin{center}
