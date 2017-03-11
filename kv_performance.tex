@@ -49,6 +49,18 @@
     commentstyle=\color[rgb]{0.133,0.545,0.133},
     stringstyle=\color[rgb]{1,0,0}
 }
+
+\lstdefinelanguage
+   [x64]{Assembler}
+   [x86masm]{Assembler}
+   {morekeywords={CDQE,CQO, CMPB, CMPSQ,CMPXCHG16B,JRCXZ,LODSQ,MOVSXD,
+                  POPFQ,PUSHFQ,SCASQ,STOSQ,IRETQ,RDTSCP,SWAPGS,MOVL,VMOVAPD,
+                  VSTMXCSR, VMOVSD, MOVABS, MOVQ, ADDSD, MOVAPD, MULSD, NOPL,
+                  rax,rdx,rcx,rbx,rsi,rdi,rsp,rbp, rip,
+                  r8,r8d,r8w,r8b,r9,r9d,r9w,r9b, r12, r13, r14, r15,
+                  xmm0, xmm1, xmm2, xmm3},
+    deletekeywords=[2]{code}
+    }
 \newcommand\realnumberstyle[1]{}
 
 \makeatletter
@@ -399,14 +411,9 @@ other cores on the system.
 \begin{appendices}
 
 \section{Function annotations}
-%\label{appending:function-recording}
-%\begin{figure}[H]
-%\begin{center}
-%\includegraphics[scale=0.33]{images/sin_P8.png}
-%\caption{\_\_sin\_avx}
-%\end{center}
-%\end{figure}
-\begin{lstlisting}[basicstyle=\ttfamily\tiny, 
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny, 
 caption=G4StepLimiter::PostStepGetPhysicalInteractionLength cycles annotation]
 Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
 -----------------------------------------------------------------------------
@@ -436,12 +443,12 @@ Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
          :      _ZNK15G4LogicalVolume13GetUserLimitsEv():
     0.00 :        32fad9:       test   %rdi,%rdi
     0.61 :        32fadc:       je     32faf8 <G4StepLimiter::PostStepGetPhysicalInteractionLength(G4Track const&, double, ...)+0x48>
-         :      _ZN13G4StepLimiter36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
-    0.00 :        32fade:       mov    (%rdi),%rax
     [...]
 \end{lstlisting}
+\end{minipage}
 
-\begin{lstlisting}[basicstyle=\ttfamily\tiny, 
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler},basicstyle=\ttfamily\tiny, 
 caption=\_\_sin\_avx cycles annotation]
 Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
 ------------------------------------------------------------------------
@@ -464,34 +471,18 @@ Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
     0.00 :        64a57:       xor    %ebp,%ebp
     0.00 :        64a59:       vmovsd %xmm2,(%rsp)
     0.03 :        64a5e:       mov    (%rsp),%rdx
-    0.35 :        64a62:       mov    %rdx,%rcx
-    0.00 :        64a65:       sar    $0x20,%rcx
-    0.00 :        64a69:       mov    %ecx,%eax
-    0.00 :        64a6b:       and    $0x7fffffff,%eax
-    0.32 :        64a70:       cmp    $0x3e4fffff,%eax
-    0.00 :        64a75:       jle    64b10 <__sin_avx+0xe0>
-    0.00 :        64a7b:       cmp    $0x3fcfffff,%eax
-    0.00 :        64a80:       jg     64b30 <__sin_avx+0x100>
-    0.05 :        64a86:       vmovapd %xmm2,%xmm3
     [...]
 \end{lstlisting}
+\end{minipage}
 
-
-
-%\begin{figure}[H]
-%\begin{center}
-%\includegraphics[scale=0.33]{images/Post_step_P8.png}
-%\caption{PostStepGetPhysicalInteractionLength}
-%\end{center}
-%\end{figure}
-
-\begin{lstlisting}[basicstyle=\ttfamily\tiny, language=html,
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny,
 caption=G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength cycles annotation]
 Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
 -----------------------------------------------------------------------------
          :      Disassembly of section .text:
          :
-         :      00000000003c77b0 <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4ForceCondition*
+         :      00000000003c77b0 <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4ForceCondition*)>:
          :      _ZN20G4VEnergyLossProcess36PostStepGetPhysicalInteractionLengthERK7G4TrackdP16G4ForceCondition():
    15.07 :        3c77b0:       push   %r14
     0.00 :        3c77b2:       movapd %xmm0,%xmm3
@@ -510,21 +501,14 @@ Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
     1.32 :        3c77d1:       mov    0x68(%rax),%rax
          :      _ZN20G4VEnergyLossProcess14DefineMaterialEPK20G4MaterialCutsCouple():
     0.50 :        3c77d5:       cmp    0x3c0(%rdi),%rax
-    1.16 :        3c77dc:       je     3c780c <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(G4Track const&, double, G4Fo
+    1.16 :        3c77dc:       je     3c780c <G4VEnergyLossProcess::PostStepGetPhysicalInteractionLength(...)+0x5c>
     1.82 :        3c77de:       mov    0x10(%rax),%rdx
-    0.00 :        3c77e2:       mov    %rax,0x3c0(%rdi)
     [...]
 \end{lstlisting}
+\end{minipage}
 
-%\begin{figure}[H]
-%\begin{center}
-%\includegraphics[scale=0.33]{images/UserStepping_P8.png}
-%\caption{UserSteppingAction}
-%\end{center}
-%\end{figure}
-
-
-\begin{lstlisting}[basicstyle=\ttfamily\tiny, language=bash,
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny, 
 caption=FADS::FadsSteppingAction::UserSteppingAction cycles annotation]
 Percent |      Source code & Disassembly of libFadsActions.so for  cycles:pp
 -----------------------------------------------------------------------------
@@ -538,7 +522,7 @@ Percent |      Source code & Disassembly of libFadsActions.so for  cycles:pp
     0.10 :        87f6:       push   %rbx
     0.19 :        87f7:       mov    %rsi,%rbx
     0.00 :        87fa:       sub    $0x20,%rsp
-    8.30 :        87fe:       cmpb   $0x0,0x8fa3(%rip)    # 117a8 <guard variable for FADS::FadsSteppingAction::UserSteppingAction(...)::act>
+    8.30 :        87fe:       cmpb   $0x0,0x8fa3(%rip)    
     0.58 :        8805:       je     8900 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0x110>
     2.99 :        880b:       cmpb   $0x0,0x8d8e(%rip)    # 115a0 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)::first>
     0.97 :        8812:       jne    8960 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0x170>
@@ -547,56 +531,91 @@ Percent |      Source code & Disassembly of libFadsActions.so for  cycles:pp
     0.00 :        8823:       test   %rsi,%rsi
     0.87 :        8826:       je     88a5 <FADS::FadsSteppingAction::UserSteppingAction(G4Step const*)+0xb5>
     0.00 :        8828:       mov    0x8891(%rip),%r12    # 110c0 <_DYNAMIC+0x388>
-    0.00 :        882f:       add    $0xf,%rsi
-    0.00 :        8833:       mov    %rsp,%rdi
-    0.00 :        8836:       lea    0x18(%r12),%rax
-    0.00 :        883b:       mov    %rax,(%rsp)
-    0.00 :        883f:       callq  6908 <std::string::reserve(unsigned long)@plt>
-    0.00 :        8844:       lea    0x55d2(%rip),%rsi    # de1d <typeinfo name for FADS::FadsStackingAction+0x2d>
     [...]
 \end{lstlisting}
+\end{minipage}
 
-%\begin{figure}[H]
-%\begin{center}
-%\includegraphics[scale=0.33]{images/UpdateForAlongStep_P8.png}
-%\caption{UpdateStepForAlongStep}
-%\end{center}
-%\end{figure}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny,
+caption=G4CrossSectionDataStore::GetCrossSection cycles annotation]
+Percent |      Source code & Disassembly of libG4processes.so for  cycles:pp
+-----------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      00000000005bbc00 <G4CrossSectionDataStore::GetCrossSection(G4DynamicParticle const*, G4Element const*, double)>:
+         :      _ZN23G4CrossSectionDataStore15GetCrossSectionEPK17G4DynamicParticlePK9G4Elementd():
+   14.85 :        5bbc00:       push   %r15
+    0.17 :        5bbc02:       push   %r14
+    1.26 :        5bbc04:       push   %r13
+    1.76 :        5bbc06:       mov    %rdx,%r13
+    0.25 :        5bbc09:       push   %r12
+    0.00 :        5bbc0b:       mov    %rsi,%r12
+    1.17 :        5bbc0e:       push   %rbp
+    0.84 :        5bbc0f:       mov    %rdi,%rbp
+    0.84 :        5bbc12:       push   %rbx
+    1.01 :        5bbc13:       sub    $0x58,%rsp
+    5.87 :        5bbc17:       mov    0x18(%rdi),%eax
+    0.00 :        5bbc1a:       movsd  %xmm0,0x8(%rsp)
+    0.25 :        5bbc20:       test   %eax,%eax
+    0.00 :        5bbc22:       je     5bbf6c <G4CrossSectionDataStore::GetCrossSection(...)+0x59>
+    0.84 :        5bbc28:       sub    $0x1,%eax
+    [...]
+\end{lstlisting}
+\end{minipage}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/GetZandACrossSection_P8.png}
-\caption{GetZandACrossSection}
-\end{center}
-\end{figure}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny, 
+caption=G4FieldTrack::G4FieldTrack cycles annotation]
+ Percent |      Source code & Disassembly of libG4geometry.so for  cycles:pp
+----------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      00000000000bc9c0 <G4FieldTrack::G4FieldTrack(...)>:
+         :      _ZN12G4FieldTrackC2ERKN5CLHEP10Hep3VectorES3_ddddddPS2_():
+    7.76 :        bc9c0:       sub    $0x88,%rsp
+    0.13 :        bc9c7:       movsd  %xmm2,0x40(%rdi)
+    0.92 :        bc9cc:       addsd  %xmm2,%xmm2
+    0.39 :        bc9d0:       movsd  %xmm4,0x48(%rdi)
+    0.00 :        bc9d5:       movabs $0x7fefffffffffffff,%rax
+    0.26 :        bc9df:       movq   $0x0,0x58(%rdi)
+    0.66 :        bc9e7:       movapd %xmm0,%xmm3
+    1.18 :        bc9eb:       movsd  %xmm1,0x38(%rdi)
+    0.00 :        bc9f0:       movsd  %xmm5,0x50(%rdi)
+    0.00 :        bc9f5:       movq   $0x0,0x60(%rdi)
+    1.58 :        bc9fd:       addsd  %xmm1,%xmm2
+    0.26 :        bca01:       movq   $0x0,0x68(%rdi)
+    0.53 :        bca09:       movq   $0x0,0x70(%rdi)
+    0.13 :        bca11:       movq   $0x0,0x78(%rdi)
+    1.18 :        bca19:       movq   $0x0,0x80(%rdi)
+\end{lstlisting}
+\end{minipage}
 
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/GetZandACrossSection_P8.png}
-\caption{GetZandACrossSection}
-\end{center}
-\end{figure}
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/DistanceToOut_P8.png}
-\caption{DistanceToOut}
-\end{center}
-\end{figure}
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/GetCrossSection_P8.png}
-\caption{GetCrossSection}
-\end{center}
-\end{figure}
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[scale=0.33]{images/__log10_finite_P8.png}
-\caption{\_\_log10\_finite}
-\end{center}
-\end{figure}
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny,
+caption=\_\_log10 finite cycles annotation]
+Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
+------------------------------------------------------------------------
+         :      Disassembly of section .text:
+         :
+         :      0000000000014690 <__log10_finite>:
+         :      __ieee754_log10():
+    7.59 :        14690:       movabs $0xfffffffffffff,%rcx
+    0.00 :        1469a:       movq   %xmm0,%rax
+    0.00 :        1469f:       cmp    %rcx,%rax
+    1.60 :        146a2:       jg     146d8 <__log10_finite+0x48>
+    0.00 :        146a4:       movabs $0x7fffffffffffffff,%rdx
+    0.00 :        146ae:       test   %rdx,%rax
+    0.00 :        146b1:       je     14770 <__log10_finite+0xe0>
+    0.00 :        146b7:       test   %rax,%rax
+    0.00 :        146ba:       js     1478f <__log10_finite+0xff>
+    0.00 :        146c0:       mulsd  0x74b18(%rip),%xmm0        # 891e0 <sqrt_2.2977+0x10>
+    0.00 :        146c8:       mov    $0xfffffbcb,%ecx
+    0.00 :        146cd:       movq   %xmm0,%rdx
+    0.00 :        146d2:       jmp    146e0 <__log10_finite+0x50>
+    0.00 :        146d4:       nopl   0x0(%rax)
+    0.27 :        146d8:       mov    %rax,%rdx
+\end{lstlisting}
+\end{minipage}
 
 
 \end{appendices}
