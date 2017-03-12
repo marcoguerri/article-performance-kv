@@ -102,7 +102,9 @@ CPU1. Single-threaded runs in a virtualised environment showed a 16\%
 increase in the final average simulation time when running on virtual processors
 corresponding to hardware threads 8 and 24, confirming the 2\%
 spread that stood out from the statistical distribution after averaging the results
-over all 8 virtual processors within each VM. 
+over all 8 virtual processors within each VM. This performance discrepancy 
+was not observed with any other benchmark under study within the HEPiX Benchmarking 
+Working Group.
 
 
 \section{Profiling single events}
@@ -275,8 +277,7 @@ of the additional clock cycles) }
 \end{table}
 
 \section{Profiling the major contributors}
-After having obtained the list in table ~\ref{major-contributors}, the 
-top contributors to the additional runtime were profiled to obtain
+The top contributors appearing in table ~\ref{major-contributors} were profiled to obtain
 a detailed breakdown of the weight of each assembly instruction in terms of 
 clock cycles. The most relevant recordings are reported in Appendix  
 ~\ref{appendix:function-recordings}. The results highlighted an interesting 
@@ -303,14 +304,10 @@ number of dummy functions which are called randomly at runtime, generating
 repeated instruction cache misses in L1i and L2. Interestingly, the results
 highlighted the same performance asymmetry observed with ATLAS Kit Validation,
 with a 20\% increase in runtime on core 8 with respect to the other cores.
-This effect could only be observed on the following systems:
-\begin{itemize}
-    \item Haswell-EP
-    \item Haswell-EX (quad-socket, with a single core on two different sockets affected)
-    \item Broadwell-EP
-\end{itemize}
-All the attempts to reproduce a similar performance asymmetry on Sandy Bridge
-and Ivy Bridge failed.
+This effect could only be observed on Haswell-EP, Haswell-EX (quad-socket, with 
+a single core on two different sockets affected) and Broadwell-EP systems. It 
+was not possible to reproduce a similar performance asymmetry on Sandy Bridge
+and Ivy Bridge platforms.
 %\begin{figure}[h]
 %\begin{center}
 %\includegraphics[scale=0.45]{images/syn-bench-a.png}
@@ -340,28 +337,26 @@ size of the hot portion of the code segment can be obtained. The
 benchmark accepts $n$ as command line argument and prints a tuple consisting of
 three values: \textit{(size code segment, runtime without initialization, n)}.
 The graph in figure ~\ref{fig:runtime-difference} shows the difference in runtime 
-between core 8 and core 0 with respect to the size of the code segment. Excluding a
-negligible number of outliers, the samples collected clearly highlighted a performance 
+between core 8 and core 0 with respect to the size of the code segment. After having 
+filtered out a negligible number of outliers (1.5\% of the measurements), 
+the samples collected clearly highlighted a performance 
 degradation beyond approximately 512KiB, with core 8 running up to 4 seconds slower
 (9.4\%) in the 3MB area. 512KiB is an interesting number, as it 
 corresponds to the space addressable with 128 iTLB entries using 4KiB pages. 
 Haswell and Broadwell architectures use an iTLB with exactly 128 entries. 
 Beyond 512KiB, a heavily non linear execution flow starts generating an increasingly 
-large number of iTLB misses. Although the reason is not clear, this test pointed
-in the direction of a different behavior of the front-end of the pipeline 
-in handling such events.
+large number of iTLB misses. This test pointed in the direction of a different 
+behavior of the front-end of the pipeline in handling such events. To date
+it is still not possibile to give an explanation for this asymmetry.
 \\
 The test was repeated by making use of the huge pages support of the operating
-system (2MiB). The following commands were used to compile and execute the benchmark
-with a code segment size of 3 MiB.
-
+system (2MiB). With this setup, no performance difference was observed between 
+core 8 and the other cores on the system.
 %\begin{lstlisting}[caption=Compilation and execution of the synthetic benchmark using huge pages]
 %sysctl vm.nr_hugepages=500
 %gcc benchmark.c -o benchmark -O0 -B/usr/share/libhugetlbfs -Wl,--hugetlbfs-align
 %hugectl --text ./switch_slowdown_v2 32768
 %\end{lstlisting}
-With 2MiB pages, no performance difference was observed between core 8 and the 
-other cores on the system.
 
 \begin{figure}[ht]
 \begin{center}
