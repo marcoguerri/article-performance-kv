@@ -10,7 +10,6 @@
 %\usepackage{float}
 \usepackage{hyperref}
 \usepackage{listings}
-\usepackage{citesort}
 \usepackage{changepage}
 \usepackage{caption}
 \usepackage{color}
@@ -89,7 +88,7 @@ temporarily removed and Simultaneous Multithreading disabled, running KV on
 the bare-metal server while setting scheduling affinity sequentially to each physical
 core. The results shown
 in Figure~\ref{kv-runtime} highlighted a 12\% difference in the average simulation
-time when binding KV to core 8, the first core of the second processor, i.e. CPU1.
+time when binding KV to core 8, the first core of the second processor (CPU1).
 
 \begin{figure}[h]
 \begin{center}
@@ -99,7 +98,7 @@ time when binding KV to core 8, the first core of the second processor, i.e. CPU
 \end{figure}
 Further tests confirmed the same behaviour also with Simultaneous Multithreading 
 on, with slower performance on thread 8 and 24, both belonging to the first core of 
-CPU1. Single thread runs in a virtualised environment showed a 16\%
+CPU1. Single-threaded runs in a virtualised environment showed a 16\%
 increase in the final average simulation time when running on virtual processors
 corresponding to hardware threads 8 and 24, confirming the 2\%
 spread that stood out from the statistical distribution after averaging the results
@@ -141,17 +140,14 @@ therefore the following points had be taken into consideration:
 \item A call to \textit{open} function in Python, results in the invocation
 of libc \textit{fopen}. Python can modify libc buffering behaviour via libc 
 function \textit{setvbuf} if \textit{buffering} parameter is specified, 
-otherwise the default libc buffering is used. Without control over the Python
-source code, it was not possible to modify buffering options.
+otherwise the default libc buffering is used. 
 \item Environment variable \textit{PYTHONUNBUFFERED} can be used to turn off
 buffering of \textit{stdin, stdout, stderr}.
 \end{itemize}
-The best solution found to implement unbuffered I/O to log files was to set 
-\textit{PYTHONUNBUFFERED=1} and pipe logs printed by KV on standard output to
-\textit{tee}, which would eventually write to an additional log file setting 
-\textit{\_IONBF} on all file descriptors via \textit{setvbuf}.
-\textit{unbuffer} command was also used to disable buffering between the two
-ends of the pipe. 
+Without control over the Python source code, the approach adopted to implement 
+unbuffered I/O to log files consisted in setting 
+\textit{PYTHONUNBUFFERED=1} and redirecting standard output and standard error 
+to an additional log file that would be monitored by the \textit{pyinotify} script.
 \\
 The profile of the execution was obtained with \textit{perf record} . 
 Results for core 0 
@@ -159,9 +155,7 @@ and core 8 are shown respectively in listing ~\ref{event-73-processor0} and
 listing ~\ref{event-73-processor8} (limiting the output to functions that
 contribute for more than 1\% of the runtime). 
 
-\begin{lstlisting}[language=Bash,float,caption=Recording of event 73 on core 0, label=event-73-processor0]
-# Total Lost Samples: 0
-#
+\begin{lstlisting}[caption=Recording of event 73 on core 0, label=event-73-processor0]
 # Samples: 125K of event ' cycles:pp'
 # Event count (approx.): 99035639955
 #
@@ -188,9 +182,7 @@ contribute for more than 1\% of the runtime).
      1.06%  athena.py  libG4processes.so      [.] G4ElectroNuclearCrossSection::GetZandACrossSec
 \end{lstlisting}
 
-\begin{lstlisting}[float,caption=Recording of event 73 on core 8, label=event-73-processor8]
-# Total Lost Samples: 0
-#
+\begin{lstlisting}[caption=Recording of event 73 on core 8, label=event-73-processor8]
 # Samples: 141K of event ' cycles:pp'
 # Event count (approx.): 111860905419
 #
@@ -239,7 +231,7 @@ libraries. These results were then elaborated into a list of the top contributor
 to the additional clock cycles required when running on core 8 as shown 
 in table ~\ref{major-contributors}.
 
-\begin{table}
+\begin{table}[ht]
 \begin{center}
 \begin{tabular}{ | l | l |}
   \hline
@@ -275,14 +267,6 @@ in table ~\ref{major-contributors}.
   \hline
   \_\_log10\_finite & 1.39\% \\
   \hline
-  G4VDiscreteProcess::PostStepGetPhysicalInteractionLength & 1.38\% \\
-  \hline
-  FADS::MagneticFieldMap::GetFieldValue & 1.38\% \\
-  \hline
-  FADS::MagneticFieldMapT$\langle$G4AtlasFieldSvc$\rangle$::FieldValue & 1.33\% \\
-  \hline
-  G4UniversalFluctuation::SampleFluctuations & 1.33\% \\
-  \hline
 \end{tabular}
 \end{center}
 \caption{Major contributors to the additional runtime on core 8 (percentage
@@ -295,26 +279,25 @@ After having obtained the list in table ~\ref{major-contributors}, the
 top contributors to the additional runtime were profiled to obtain
 a detailed breakdown of the weight of each assembly instruction in terms of 
 clock cycles. The most relevant recordings are reported in Appendix  
-~\ref{appending:function-recording}. The results highlighted an interesting 
+~\ref{appendix:function-recordings}. The results highlighted an interesting 
 pattern on most of the major contributors:  it appeared that an unexpectedly 
-large number of cycles was attributed to the initial instructions of each function.
-Most of these instructions, despite sometimes accessing memory 
-(e.g. push on the stack), could not justify such a high cost: in some cases a 
+large number of cycles was attributed to the initial instructions of each function,
+most of which could not justify such a high cost. In some cases a 
 \textit{mov} of a literal value to a register was taking up 8\% of the whole 
-execution time of that specific function. Such behavior was common to all cores,
-but if these functions were responsible for most of the additional execution time,
-then probably the reason had to be related to this peculiar profile. A first hypothesis
+execution time of that specific function (listing ~\ref{lst:log10}). 
+Such behaviour was common to all cores and could not explain the performance
+asymmetry highlighted by the benchmark. However, if most of the additional 
+clock cycles were spent executing these functions, it was reasonable to hypothesize
+a correlation with this peculiar profile. A first hypothesis
 pointed in the direction of instruction cache misses as the reason behind
-the large number of cycles spent on the initial instructions.
-ATLAS Kit Validation seemed a good candidate for a large number of  such events,
-with its large code segment consisting of tens of shared libraries. Even though
-this hypothesis could not explain the slower performance when running on core 8,
-an attempt was made to validate it.
- 
+the overhead attributed to the initial instructions.
+ATLAS Kit Validation seemed a good candidate for a large number of such events,
+with its code segment consisting of tens of shared libraries. 
 
 \section{Synthetic benchmark to generate instruction cache miss}
 A synthetic benchmark aimed at causing a large number of instruction cache 
-misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script}. The resulting C code was compiled
+misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script}. 
+The resulting C code was compiled
 under CentOS 7 with gcc 4.8.5 and \textit{-O0}. The benchmark consists of a large
 number of dummy functions which are called randomly at runtime, generating
 repeated instruction cache misses in L1i and L2. Interestingly, the results
@@ -372,17 +355,17 @@ The test was repeated by making use of the huge pages support of the operating
 system (2MiB). The following commands were used to compile and execute the benchmark
 with a code segment size of 3 MiB.
 
-\begin{lstlisting}
-sysctl vm.nr_hugepages=500
-gcc benchmark.c -o benchmark -O0 -B/usr/share/libhugetlbfs -Wl,--hugetlbfs-align
-hugectl --text ./switch_slowdown_v2 32768
-\end{lstlisting}
+%\begin{lstlisting}[caption=Compilation and execution of the synthetic benchmark using huge pages]
+%sysctl vm.nr_hugepages=500
+%gcc benchmark.c -o benchmark -O0 -B/usr/share/libhugetlbfs -Wl,--hugetlbfs-align
+%hugectl --text ./switch_slowdown_v2 32768
+%\end{lstlisting}
 With 2MiB pages, no performance difference was observed between core 8 and the 
 other cores on the system.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
-\includegraphics[scale=0.45]{images/runtime_difference.png}
+\includegraphics[scale=0.40]{images/runtime_difference.png}
 \end{center}
 \caption{\label{fig:runtime-difference} Runtime difference between core 8 and core 0}
 \end{figure}
@@ -409,9 +392,8 @@ other cores on the system.
 \newpage
 \newpage
 \begin{appendices}
-
+\label{appendix:function-recordings}
 \section{Function annotations}
-
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny, 
 caption=G4StepLimiter::PostStepGetPhysicalInteractionLength cycles annotation]
@@ -592,7 +574,7 @@ caption=G4FieldTrack::G4FieldTrack cycles annotation]
 
 \begin{minipage}{\linewidth}
 \begin{lstlisting}[language={[x64]Assembler}, basicstyle=\ttfamily\tiny,
-caption=\_\_log10 finite cycles annotation]
+caption=\_\_log10\_finite cycles annotation, label=lst:log10]
 Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
 ------------------------------------------------------------------------
          :      Disassembly of section .text:
@@ -619,7 +601,7 @@ Percent |      Source code & Disassembly of libm-2.17.so for  cycles:pp
 
 
 \end{appendices}
-%\section*{References}
-%\bibliography{iopart-num}
-%\bibliographystyle{unsrt}
+\section*{References}
+\bibliography{iopart-num}
+\bibliographystyle{unsrt}
 \end{document}
