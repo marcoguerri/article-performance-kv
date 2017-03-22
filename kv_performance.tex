@@ -23,7 +23,7 @@
 \usepackage{hyperref}\begin{document}
 \title{Profiling CPU-bound workloads on Intel Haswell-EP platforms}
 
-\author{M Guerri$^1$, D Giordano$^1$, C Cordeiro$^1$}
+\author{M Guerri$^1$, D Giordano$^1$ and C Cordeiro$^1$}
 \address{$^1$ CERN}
 \ead{marco.guerri@cern.ch}
 %\SetWatermarkText{DRAFT}
@@ -88,7 +88,7 @@
 %\section{Bare metal results}
 In order to ease the performance analysis, the virtualisation layer was
 temporarily removed and Simultaneous Multithreading disabled, running KV on
-the bare-metal server while setting scheduling affinity sequentially to each physical
+the bare-metal server installed with CC7 while setting scheduling affinity sequentially to each physical
 core. The results shown in table ~\ref{table:simulation-time-cores}
 highlighted a 12\% difference in the average simulation
 time when binding KV to core 8, the first core of the second processor (CPU1).
@@ -101,8 +101,9 @@ time when binding KV to core 8, the first core of the second processor (CPU1).
 %\end{figure}
 
 \begin{wraptable}{l}{0.35\linewidth}
-    \vspace{-5mm}
-    \caption{Average simulation \newline time (sec/evt)}
+    \vspace{-3mm}
+    \caption{Average simulation time \newline (sec/evt) on bare-metal server \newline 
+             running CC7}
     \label{table:simulation-time-cores}
     \begin{tabular}{ |l |  l  || l | l|}
         \hline
@@ -125,10 +126,10 @@ time when binding KV to core 8, the first core of the second processor (CPU1).
         Core 7  & 0.81 & Core 15  & 0.81\\
         \hline
     \end{tabular}
-    \vspace{-10mm}
+    \vspace{-7mm}
 \end{wraptable}
 Further tests confirmed the same behaviour also with Simultaneous Multithreading
-on, with slower performance on thread 8 and 24, both belonging to the first core of
+enabled, with slower performance on thread 8 and 24, both belonging to the first core of
 CPU1. Single-threaded runs in a virtualised environment showed a 16\%
 increase in the final average simulation time when running on virtual processors
 corresponding to hardware threads 8 and 24, confirming the 2\%
@@ -142,15 +143,15 @@ Working Group.
 A deeper dive in the logs showed that all the events required more time to be
 simulated on core 8. In particular, event 73 was identified as the one
 requiring the longest simulation time: ~34 seconds on core 8 against ~29 seconds
-on any other core, making it a good candidate for an in-depth analysis. Profiling
+on any other core, making it a good candidate for a detailed analysis. Profiling
 a single event required a way to attach \textit{perf} to KV only during the time frame
 where one specific simulation was being executed. The solution adopted consisted
-in a Python script which would monitor KV log files via \textit{pyinotify} to detect
+of a Python script which would monitor KV log files via \textit{pyinotify} to detect
 the beginning of event 73. The script would attach \textit{perf} to KV until the
-detection of the end of event. One essential requirement for this to work correctly
+detection of the end of the event. One essential requirement for this to work correctly
 was to disable all the buffering carried out at any layer of the stack before
-data actually reaching the storage device. KV writes log files via Python code,
-therefore the following points had be taken into consideration:
+data actually reached the storage device. KV writes log files via Python code,
+therefore the following points had to be taken into consideration:
 %\begin{lstlisting}[caption=Simulation of event 73 on core 8, basicstyle=\scriptsize]
 %*  Memory snooper called at end of event with VMEM: 1443232kB
 %G4SimTimer           INFO        Event nr. 73 took 34.58 s. New average 0.985 +- 0.4806
@@ -170,25 +171,25 @@ therefore the following points had be taken into consideration:
 %\end{lstlisting}
 
 \begin{itemize}
-\item A call to \textit{open} function in Python, results in the invocation
-of libc \textit{fopen}. Python can modify libc buffering behaviour via libc
+\item A call to the \textit{open} function in Python results in the invocation
+of libc \textit{fopen}. Python can modify libc buffering behaviour via the libc
 function \textit{setvbuf} if \textit{buffering} parameter is specified,
-otherwise the default libc buffering is used.
-\item Environment variable \textit{PYTHONUNBUFFERED} can be used to turn off
-buffering of \textit{stdin, stdout, stderr}.
+otherwise the default buffering mode is used.
+\item The environment variable \textit{PYTHONUNBUFFERED} can be used to turn off
+buffering of \textit{stdin, stdout and stderr}.
 \end{itemize}
-Without control over the Python source code, the approach adopted to implement
-unbuffered I/O to log files consisted in setting
-\textit{PYTHONUNBUFFERED=1} and redirecting standard output and standard error
-to an additional log file that would be monitored by the \textit{pyinotify} script.
+Without control over the Python source code, unbuffered I/O was implemented by 
+invoking KV with \textit{stdbuf -o0} command and redirecting \textit{stdout} and \textit{stderr}
+to an additional file that would be monitored by the \textit{pyinotify} script. This approach 
+works correctly even when commands are piped together.
 \\
-The profile of the execution was obtained with \textit{perf record} .
+The profile of the execution was obtained with \textit{perf record}.
 Results for core 0
-and core 8 are shown respectively in listing ~\ref{event-73-processor0} and
-listing ~\ref{event-73-processor8} (limiting the output to functions that
+and core 8 are shown respectively in Listing~\ref{event-73-processor0} and
+Listing~\ref{event-73-processor8} (limiting the output to functions that
 contribute for more than 1\% of the runtime).
 
-\begin{lstlisting}[caption=Recording of event 73 on core 0, label=event-73-processor0]
+\begin{lstlisting}[caption=Recording of event 73 on core 0., label=event-73-processor0]
 # Samples: 125K of event ' cycles:pp'
 # Event count (approx.): 99035639955
 #
@@ -215,7 +216,7 @@ contribute for more than 1\% of the runtime).
      1.06%  athena.py  libG4processes.so      [.] G4ElectroNuclearCrossSection::GetZandACrossSec
 \end{lstlisting}
 
-\begin{lstlisting}[caption=Recording of event 73 on core 8, label=event-73-processor8]
+\begin{lstlisting}[caption=Recording of event 73 on core 8., label=event-73-processor8]
 # Samples: 141K of event ' cycles:pp'
 # Event count (approx.): 111860905419
 #
@@ -256,13 +257,10 @@ contribute for more than 1\% of the runtime).
 %\caption{\label{event-73-processor0} Recording of event 73 on core 0}
 %\end{figure}
 
-Excluding the higher number of events
-(unhalted core cycles) on core 8, which was expected due to the longer runtime,
-it was not possible to identify any major difference between the two runs, which
-were showing the same functions coming mostly from \textit{libm} and \textit{Gean4}
-libraries. These results were then elaborated into a list of the top contributors
-to the additional clock cycles required when running on core 8 as shown
-in table ~\ref{major-contributors}.
+Excluding the higher number of events (unhalted core cycles) on core 8, which was 
+expected due to the longer runtime, it was not possible to identify any major differences 
+between the two runs. A list of the top contributors to the additional clock cycles required 
+when running on core 8 was extracted from the recordings. Results are shown in Table~\ref{major-contributors}.
 
 \begin{table}[ht]
 \begin{center}
@@ -308,15 +306,15 @@ of the additional clock cycles) }
 \end{table}
 
 \section{Profiling the major contributors}
-The top contributors appearing in table ~\ref{major-contributors} were profiled to obtain
+The functions appearing in Table~\ref{major-contributors} were profiled to obtain
 a detailed breakdown of the weight of each assembly instruction in terms of
-clock cycles. The most relevant recordings are reported in Appendix
-~\ref{appendix:function-recordings}. The results highlighted an interesting
-pattern on most of the major contributors:  it appeared that an unexpectedly
+clock cycles. The most relevant recordings are reported in Appendix~\ref{appendix:function-recordings}. 
+The results highlighted an interesting pattern on most of the major contributors to 
+the additional runtime on core 8:  it appeared that an unexpectedly
 large number of cycles was attributed to the initial instructions of each function,
 most of which could not justify such a high cost. In some cases a
 \textit{mov} of a literal value to a register was taking up 8\% of the whole
-execution time of that specific function (listing ~\ref{lst:log10}).
+execution time of that specific function (Listing~\ref{lst:log10}).
 Such behaviour was common to all cores and could not explain the performance
 asymmetry highlighted by the benchmark. However, if most of the additional
 clock cycles were spent executing these functions, it was reasonable to hypothesize
@@ -326,12 +324,12 @@ the overhead attributed to the initial instructions.
 ATLAS Kit Validation seemed a good candidate for a large number of such events,
 with its code segment consisting of tens of shared libraries.
 
-\section{Synthetic benchmark to generate instruction cache miss}
+\section{A synthetic benchmark to generate instruction cache miss}
 A synthetic benchmark aimed at causing a large number of instruction cache
-misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script}.
+misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script} ~\cite{synthetic_benchmark:icache_misses}.
 The resulting C code was compiled
-under CentOS 7 with gcc 4.8.5 and \textit{-O0}. The benchmark consists of a large
-number of dummy functions which are called randomly at runtime, generating
+under CentOS 7 with gcc 4.8.5 and optimizations disabled (\textit{-O0}). The benchmark 
+consists of a large number of dummy functions which are called randomly at runtime to generate
 repeated instruction cache misses in L1i and L2. Interestingly, the results
 highlighted the same performance asymmetry observed with ATLAS Kit Validation,
 with a 20\% increase in runtime on core 8 with respect to the other cores.
@@ -351,23 +349,23 @@ on Haswell and Broadwell, but without any discrepancy in execution time,
 disproving the initial hypothesis and making it necessary to seek for an
 alternative explanation.
 
-\section{Additional benchmark with customizable code segment size}
+\section{An additional benchmark with customizable code segment size}
 \label{section:benchmark-itlb}
 \href{https://gitlab.cern.ch/snippets/217}{A second synthetic benchmark}
 was written in order to verify the existence of a
 correlation between the size of the code segment and the performance
-asymmetry. This benchmark is also aimed at generating instruction cache misses,
+asymmetry ~\cite{synthetic_benchmark:icache_misses_variable_code_segment}. 
+This benchmark also aimed to generate instruction cache misses,
 but within a code segment whose size can be controlled via a command line
 argument. The code makes use of a large switch statement that dispatches
-opcodes randomly generated. This operation is performed in loop:
-by feeding the switch with $opcode\pmod n$, the number of case
-branches effectively used is limited to $n$. The higher $n$, the larger the
-number of case branches that can be reached. By ``sampling'' the
+randomly generated opcodes in loop. By feeding the switch with \textit{opcode mod n}, the number of case
+branches effectively used at runtime is limited to $n$. The higher $n$, the larger the
+number of case branches that can be reached. By sampling the
 maximum and minimum values of \textit{rip} register, a reliable estimate of the
 size of the hot portion of the code segment can be obtained. The
 benchmark accepts $n$ as command line argument and prints a tuple consisting of
-three values: \textit{(size code segment, runtime without initialization, n)}.
-The graph in figure ~\ref{fig:runtime-difference} shows the difference in runtime
+three values: \textit{size code segment, runtime without initialization} and \textit{n}.
+The graph in Figure~\ref{fig:runtime-difference} shows the difference in runtime
 between core 8 and core 0 with respect to the size of the code segment. After having
 filtered out a negligible number of outliers (1.5\% of the measurements),
 the samples collected clearly highlighted a performance
@@ -375,14 +373,14 @@ degradation beyond approximately 512KiB, with core 8 running up to 4 seconds slo
 (9.4\%) in the 3MB area. 512KiB is an interesting number, as it
 corresponds to the space addressable with 128 iTLB entries using 4KiB pages.
 Haswell and Broadwell architectures use an iTLB with exactly 128 entries.
-Beyond 512KiB, a heavily non linear execution flow starts generating an increasingly
+Beyond 512KiB, a heavily nonlinear execution flow starts generating an increasingly
 large number of iTLB misses. This test pointed in the direction of a different
-behavior of the front-end of the pipeline in handling such events. To date
-it is still not possibile to give an explanation for this asymmetry.
+behaviour of pipeline front-end in handling such events. To date
+it is still not possible to give an explanation for this asymmetry.
 \\
 The test was repeated by making use of the huge pages support of the operating
-system (2MiB). With this setup, no performance difference was observed between
-core 8 and the other cores on the system.
+system (2MiB) to map the code segment of the benchmark. With this setup no 
+performance difference was observed between core 8 and the other cores on the system.
 %\begin{lstlisting}[caption=Compilation and execution of the synthetic benchmark using huge pages]
 %sysctl vm.nr_hugepages=500
 %gcc benchmark.c -o benchmark -O0 -B/usr/share/libhugetlbfs -Wl,--hugetlbfs-align
@@ -393,7 +391,7 @@ core 8 and the other cores on the system.
 %\begin{center}
 %\includegraphics[scale=0.40]{images/runtime_difference.png}
 %\end{center}
-%\caption{\label{fig:runtime-difference} Runtime difference between core 8 and core 0}
+%\caption{\label{fig:runtime-difference} Runtime difference between core 8 and core 0.}
 %\end{figure}
 
 \pgfplotsset{xlabel style={font=\scriptsize},
@@ -425,6 +423,15 @@ core 8 and the other cores on the system.
 \end{center}
 \end{figure}
 
+\section{Conclusions}
+When running specific workloads on dual socket Haswell-EP systems, we observed a 
+difference in performance between the first core of the second CPU and the other 
+cores on the system. Synthetic benchmarks written during the investigation require up to 20\% additional 
+time to complete on the first core of the second CPU. This asymmetry has been 
+reproduced on Haswell-EX and Broadwell-EP platforms. After deep investigations, 
+we came to the conclusion that this performance difference seems to be correlated 
+with the number of iTLB misses generated by the workload. At this stage we are 
+unable to provide conclusive evidence to support our thesis.
 %\section{Hypothesis disproved so far}
 %The following hypothesis have been taken into account so far, without however
 %leading to a satisfactory explanation:

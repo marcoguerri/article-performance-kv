@@ -1,12 +1,12 @@
 \begin{abstract}
-With the increasing adoption of cloud resources, public and private, to support
+With the increasing adoption of public and private cloud resources to support
 the demands in terms of computing capacity of the WLCG, the HEP community has begun
 studying several benchmarking applications aimed at continuously assessing the
 performance of virtual machines procured from commercial providers.
 In order to characterise the behaviour of these benchmarks, in-depth
 profiling activities have been carried out. In this document we outline
-our experience in profiling one specific application, ATLAS Kit Validation,
-in an attempt to explain an unexpected distribution of the performance samples
+our experience in profiling one specific application, the ATLAS Kit Validation,
+in an attempt to explain an unexpected distribution in the performance samples
 obtained on systems based on Intel Haswell-EP processors.
 \end{abstract}
 
@@ -14,14 +14,14 @@ obtained on systems based on Intel Haswell-EP processors.
 \section{Introduction}
 Nowadays the majority of the experiments' workloads running on the WLCG are simulation 
 jobs, where most of the computing time is spent in CPU-bound activities. For this 
-reason the adoption of fast benchmarks representative of these workloads 
+reason the adoption of fast benchmarks representative of these applications
 can be beneficial for monitoring and resource allocation purposes,
-by providing real-time information on the performance delivered by virtual 
+providing real-time information on the performance delivered by virtual 
 machines in the cloud or job slots in a grid site.
 %For instance a prompt benchmarking can  act as a prediction mechanism for the 
 %execution of the LHC experiments' workloads, allowing for a fast and reliable 
 %triage of suitable resources in a much shorter time period than standard jobs.
-A number of fast benchmarks is being studied by the HEP community. Within the 
+A number of fast benchmarks are being studied by the HEP community. Within the 
 HEPiX Benchmarking Working Group~\cite{HEPiX:2014:HEPiX}, two fast benchmarks are 
 in particular under deep investigation: Dirac Benchmark 2012 (DB12)~\cite{CERN:2016:DB12} 
 and ATLAS Kit Validation (KV)~\cite{KV}.
@@ -30,7 +30,7 @@ and ATLAS Kit Validation (KV)~\cite{KV}.
 KV is the toolkit adopted by the ATLAS collaboration for the
 validation of their software installation in grid sites. The tests include, among
 others, the GEANT4~\cite{GEANT4} simulation of the ATLAS detector, which
-has been re-purposed to benchmark compute resources against CPU-bound 
+has been repurposed to benchmark compute resources against CPU-bound 
 workloads. The KV benchmark simulates $n$ independent events consisting of a single muon particle 
 propagating through the ATLAS detector. The CPU time needed to elaborate each event 
 is recorded and the average over the $n$ events is computed as the final benchmark result.
@@ -39,16 +39,16 @@ overhead coming from the initialisation of the software libraries and the config
 of the simulation parameters (detector geometry, list of particles, properties of 
 the materials) are disregarded from the measurement.
 
-The KV benchmark is single threaded as most of the LHC experiments'
-software applications. In order to fully utilize compute resources and reproduce
+The KV benchmark is single threaded as are most of the LHC experiments'
+software applications. In order to fully utilise compute resources and reproduce
 the worst case load scenario, where all compute slots are running jobs and
-CPU idle time is minimised, the benchmark is configured to run,
-by default, in parallel with as many threads as the number of logical cores 
+CPU idle time is minimised, the benchmark by default is configured to run in parallel 
+with as many threads as the number of logical cores 
 provided by the server and the benchmark result is calculated as the arithmetic 
 average over all threads.
 
 In the past few years the KV benchmark has been used to assess the performance of
-resources provided by commercial cloud providers and grid site. The results 
+resources provided by commercial cloud providers and grid sites. The results 
 have been compared with the average CPU time required to simulate ATLAS events, 
 as reported by the experiment's job monitoring framework. Details about this activity 
 and the correlation among benchmark results and job duration are reported 
@@ -56,18 +56,18 @@ in~\cite{bmk}.
 
 
 \section{Investigating KV results}
-One of the several environments that was benchmarked using KV consisted of
+One of the several environments benchmarked using KV consisted of
  240 Haswell-EP hypervisors providing compute
 resources as VMs dedicated to the CERN Tier-0 batch system. The servers were
 fitted with two 8-core Intel Xeon E5-2630v3 processors, with a total number  
 of 32 threads per server with simultaneous multithreading enabled, and 64~GiB    
 of DDR4 RAM in fully balanced configuration, with each memory channel populated with
 the same number of DIMMs of equal capacity. All the hypervisors were configured 
-to host 2 VMs providing 16 virtual processing units each, with pairs of VMs 
+to host 2 VMs installed with SLC6 providing 16 virtual processing units each, with pairs of VMs 
 confined to separate NUMA domains. KV was executed with 16 parallel processes 
 on each VM, resulting in the full utilisation of the hardware threads provided
 by the machine, and the final aggregated result was obtained as the average over 
-the 16 simulation times. The samples collected from the VMs under test resulted in a dual-mode guassian 
+the 16 simulations. The samples collected from the VMs under test resulted in a dual-mode guassian 
 distribution, with a 2\% difference between the 
 mean of the two modes as shown in Figure~\ref{dual-mode-gaussian}.
 
