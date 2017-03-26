@@ -87,8 +87,8 @@
 
 %\section{Bare metal results}
 In order to ease the performance analysis, the virtualisation layer was
-temporarily removed and Simultaneous Multithreading disabled, running KV on
-the bare-metal server installed with CC7 while setting scheduling affinity sequentially to each physical
+temporarily removed and simultaneous multithreading disabled, running KV on
+the bare-metal server installed with CentOS 7 while setting scheduling affinity sequentially to each physical
 core. The results shown in table ~\ref{table:simulation-time-cores}
 highlighted a 12\% difference in the average simulation
 time when binding KV to core 8, the first core of the second processor (CPU1).
@@ -103,7 +103,7 @@ time when binding KV to core 8, the first core of the second processor (CPU1).
 \begin{wraptable}{l}{0.35\linewidth}
     \vspace{-3mm}
     \caption{Average simulation time \newline (sec/evt) on bare-metal server \newline 
-             running CC7}
+             running CentOS 7}
     \label{table:simulation-time-cores}
     \begin{tabular}{ |l |  l  || l | l|}
         \hline
@@ -128,8 +128,8 @@ time when binding KV to core 8, the first core of the second processor (CPU1).
     \end{tabular}
     \vspace{-7mm}
 \end{wraptable}
-Further tests confirmed the same behaviour also with Simultaneous Multithreading
-enabled, with slower performance on thread 8 and 24, both belonging to the first core of
+Further tests confirmed the same behaviour also with simultaneous multithreading
+enabled, with slower performance on threads 8 and 24, both belonging to the first core of
 CPU1. Single-threaded runs in a virtualised environment showed a 16\%
 increase in the final average simulation time when running on virtual processors
 corresponding to hardware threads 8 and 24, confirming the 2\%
@@ -147,7 +147,7 @@ on any other core, making it a good candidate for a detailed analysis. Profiling
 a single event required a way to attach \textit{perf} to KV only during the time frame
 where one specific simulation was being executed. The solution adopted consisted
 of a Python script which would monitor KV log files via \textit{pyinotify} to detect
-the beginning of event 73. The script would attach \textit{perf} to KV until the
+the beginning of event 73 and then attach \textit{perf} to the process until the
 detection of the end of the event. One essential requirement for this to work correctly
 was to disable all the buffering carried out at any layer of the stack before
 data actually reached the storage device. KV writes log files via Python code,
@@ -186,8 +186,8 @@ works correctly even when commands are piped together.
 The profile of the execution was obtained with \textit{perf record}.
 Results for core 0
 and core 8 are shown respectively in Listing~\ref{event-73-processor0} and
-Listing~\ref{event-73-processor8} (limiting the output to functions that
-contribute for more than 1\% of the runtime).
+Listing~\ref{event-73-processor8}, limiting the output to functions that
+contribute for more than 1\% of the runtime.
 
 \begin{lstlisting}[caption=Recording of event 73 on core 0., label=event-73-processor0]
 # Samples: 125K of event ' cycles:pp'
@@ -316,15 +316,14 @@ most of which could not justify such a high cost. In some cases a
 \textit{mov} of a literal value to a register was taking up 8\% of the whole
 execution time of that specific function (Listing~\ref{lst:log10}).
 Such behaviour was common to all cores and could not explain the performance
-asymmetry highlighted by the benchmark. However, if most of the additional
-clock cycles were spent executing these functions, it was reasonable to hypothesize
+asymmetry highlighted by the benchmark, but it was reasonable to hypothesize
 a correlation with this peculiar profile. A first hypothesis
 pointed in the direction of instruction cache misses as the reason behind
 the overhead attributed to the initial instructions.
 ATLAS Kit Validation seemed a good candidate for a large number of such events,
-with its code segment consisting of tens of shared libraries.
+with its code segment consisting of more than 300 shared libraries.
 
-\section{A synthetic benchmark to generate instruction cache miss}
+\section{A synthetic benchmark to generate instruction cache misses}
 A synthetic benchmark aimed at causing a large number of instruction cache
 misses was automatically generated using a \href{https://gitlab.cern.ch/snippets/216}{Python script} ~\cite{synthetic_benchmark:icache_misses}.
 The resulting C code was compiled
@@ -353,17 +352,17 @@ alternative explanation.
 \label{section:benchmark-itlb}
 \href{https://gitlab.cern.ch/snippets/217}{A second synthetic benchmark}
 was written in order to verify the existence of a
-correlation between the size of the code segment and the performance
-asymmetry ~\cite{synthetic_benchmark:icache_misses_variable_code_segment}. 
-This benchmark also aimed to generate instruction cache misses,
+correlation between the size of the code segment and the slowdown observed on core 8
+~\cite{synthetic_benchmark:icache_misses_variable_code_segment}. 
+This benchmark also aims to generate instruction cache misses,
 but within a code segment whose size can be controlled via a command line
 argument. The code makes use of a large switch statement that dispatches
 randomly generated opcodes in loop. By feeding the switch with \textit{opcode mod n}, the number of case
 branches effectively used at runtime is limited to $n$. The higher $n$, the larger the
 number of case branches that can be reached. By sampling the
 maximum and minimum values of \textit{rip} register, a reliable estimate of the
-size of the hot portion of the code segment can be obtained. The
-benchmark accepts $n$ as command line argument and prints a tuple consisting of
+size of the hot portion of the code segment is obtained. The
+benchmark takes $n$ as command line argument and prints a tuple consisting of
 three values: \textit{size code segment, runtime without initialization} and \textit{n}.
 The graph in Figure~\ref{fig:runtime-difference} shows the difference in runtime
 between core 8 and core 0 with respect to the size of the code segment. After having
@@ -371,14 +370,12 @@ filtered out a negligible number of outliers (1.5\% of the measurements),
 the samples collected clearly highlighted a performance
 degradation beyond approximately 512KiB, with core 8 running up to 4 seconds slower
 (9.4\%) in the 3MB area. 512KiB is an interesting number, as it
-corresponds to the space addressable with 128 iTLB entries using 4KiB pages.
-Haswell and Broadwell architectures use an iTLB with exactly 128 entries.
-Beyond 512KiB, a heavily nonlinear execution flow starts generating an increasingly
-large number of iTLB misses. This test pointed in the direction of a different
-behaviour of pipeline front-end in handling such events. To date
-it is still not possible to give an explanation for this asymmetry.
-\\
-The test was repeated by making use of the huge pages support of the operating
+corresponds to the space addressable with 128 iTLB entries using 4KiB pages: this
+matches exacly the size of the iTLB on Haswell and Broadwell architectures.
+With a code segment larger than 512KiB, a heavily nonlinear execution flow starts generating an increasingly
+large number of iTLB misses and a diverging performance possibly points in the direction of different
+behaviour of the pipeline front-end in handling such events. The test was repeated 
+by making use of the huge pages support of the operating
 system (2MiB) to map the code segment of the benchmark. With this setup no 
 performance difference was observed between core 8 and the other cores on the system.
 %\begin{lstlisting}[caption=Compilation and execution of the synthetic benchmark using huge pages]
@@ -424,14 +421,17 @@ performance difference was observed between core 8 and the other cores on the sy
 \end{figure}
 
 \section{Conclusions}
-When running specific workloads on dual socket Haswell-EP systems, we observed a 
+When running specific workloads on dual socket Haswell-EP platforms, we observed a 
 difference in performance between the first core of the second CPU and the other 
-cores on the system. Synthetic benchmarks written during the investigation require up to 20\% additional 
+cores on the system. Synthetic benchmarks written during this study require up to 20\% additional 
 time to complete on the first core of the second CPU. This asymmetry has been 
-reproduced on Haswell-EX and Broadwell-EP platforms. After deep investigations, 
-we came to the conclusion that this performance difference seems to be correlated 
-with the number of iTLB misses generated by the workload. At this stage we are 
-unable to provide conclusive evidence to support our thesis.
+reproduced on Haswell-EP, Haswell-EX and Broadwell-EP platforms. The results of
+our deep investigation suggest that lower performance on core 8 be caused
+by a different behaviour in handling iTLB misses: as a consequence, different
+runtime can be observed only with workloads that generate a high number of
+such events. At this stage we are unable to provide a conclusive explanation for
+this asymmetry.
+
 %\section{Hypothesis disproved so far}
 %The following hypothesis have been taken into account so far, without however
 %leading to a satisfactory explanation:
