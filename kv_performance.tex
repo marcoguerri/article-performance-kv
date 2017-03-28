@@ -89,7 +89,7 @@
 In order to ease the performance analysis, the virtualisation layer was
 temporarily removed and simultaneous multithreading disabled, running KV on
 the bare-metal server installed with CentOS 7 while setting scheduling affinity sequentially to each physical
-core. The results shown in table ~\ref{table:simulation-time-cores}
+core. The results shown in table~\ref{table:simulation-time-cores}
 highlighted a 12\% difference in the average simulation
 time when binding KV to core 8, the first core of the second processor (CPU1).
 
@@ -136,7 +136,7 @@ corresponding to hardware threads 8 and 24, confirming the 2\%
 spread that stood out from the statistical distribution after averaging the results
 over all 8 virtual processors within each VM. This performance discrepancy
 was not observed with any other benchmark under study within the HEPiX Benchmarking
-Working Group.
+Working Group, namely DB12 and Whetstone.
 
 
 \section{Profiling single events}
@@ -368,11 +368,11 @@ The graph in Figure~\ref{fig:runtime-difference} shows the difference in runtime
 between core 8 and core 0 with respect to the size of the code segment. After having
 filtered out a negligible number of outliers (1.5\% of the measurements),
 the samples collected clearly highlighted a performance
-degradation beyond approximately 512KiB, with core 8 running up to 4 seconds slower
-(9.4\%) in the 3MB area. 512KiB is an interesting number, as it
-corresponds to the space addressable with 128 iTLB entries using 4KiB pages: this
+degradation beyond approximately 512~KiB, with core 8 running up to 4 seconds slower
+(9.4\%) in the 3~MB area. 512~KiB is an interesting number, as it
+corresponds to the space addressable with 128 iTLB entries using 4~KiB pages: this
 matches exacly the size of the iTLB on Haswell and Broadwell architectures.
-With a code segment larger than 512KiB, a heavily nonlinear execution flow starts generating an increasingly
+With a code segment larger than 512~KiB, a heavily nonlinear execution flow starts generating an increasingly
 large number of iTLB misses and a diverging performance possibly points in the direction of different
 behaviour of the pipeline front-end in handling such events. The test was repeated 
 by making use of the huge pages support of the operating

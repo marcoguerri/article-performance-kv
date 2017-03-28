@@ -28,7 +28,7 @@ and ATLAS Kit Validation (KV)~\cite{KV}.
 
 \section{KV Benchmark}
 KV is the toolkit adopted by the ATLAS collaboration for the
-validation of their software installation in grid sites. The tests include, among
+validation of their software installation in Grid sites. The tests include, among
 others, the GEANT4~\cite{GEANT4} simulation of the ATLAS detector, which
 has been repurposed to benchmark compute resources against CPU-bound 
 workloads. The KV benchmark simulates $n$ independent events consisting of a single muon particle 
@@ -48,7 +48,7 @@ provided by the server and the benchmark result is calculated as the arithmetic
 average over all threads.
 
 In the past few years the KV benchmark has been used to assess the performance of
-resources provided by commercial cloud providers and grid sites. The results 
+resources provided by commercial cloud providers and Grid sites. The results 
 have been compared with the average CPU time required to simulate ATLAS events, 
 as reported by the experiment's job monitoring framework. Details about this activity 
 and the correlation among benchmark results and job duration are reported 
@@ -67,7 +67,7 @@ to host 2 VMs installed with SLC6 providing 16 virtual processing units each, wi
 confined to separate NUMA domains. KV was executed with 16 parallel processes 
 on each VM, resulting in the full utilisation of the hardware threads provided
 by the machine, and the final aggregated result was obtained as the average over 
-the 16 simulations. The samples collected from the VMs under test resulted in a dual-mode guassian 
+the 16 simulations. The samples collected from the VMs under test resulted in a bimodal guassian 
 distribution, with a 2\% difference between the 
 mean of the two modes as shown in Figure~\ref{dual-mode-gaussian}.
 
