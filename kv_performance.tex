@@ -142,7 +142,7 @@ Working Group, namely DB12 and Whetstone.
 \section{Profiling single events}
 A deeper dive in the logs showed that all the events required more time to be
 simulated on core 8. In particular, event 73 was identified as the one
-requiring the longest simulation time: ~34 seconds on core 8 against ~29 seconds
+requiring the longest simulation time: 34 seconds on core 8 against 29 seconds
 on any other core, making it a good candidate for a detailed analysis. Profiling
 a single event required a way to attach \textit{perf} to KV only during the time frame
 where one specific simulation was being executed. The solution adopted consisted
@@ -311,15 +311,15 @@ a detailed breakdown of the weight of each assembly instruction in terms of
 clock cycles. The most relevant recordings are reported in Appendix~\ref{appendix:function-recordings}. 
 The results highlighted an interesting pattern on most of the major contributors to 
 the additional runtime on core 8:  it appeared that an unexpectedly
-large number of cycles was attributed to the initial instructions of each function,
+large number of cycles was spent on the initial instructions of each function,
 most of which could not justify such a high cost. In some cases a
-\textit{mov} of a literal value to a register was taking up 8\% of the whole
-execution time of that specific function (Listing~\ref{lst:log10}).
+\textit{mov} of a literal value to a register was attributed 7.5\% of the samples
+collected for that specific function (Listing~\ref{lst:log10}).
 Such behaviour was common to all cores and could not explain the performance
 asymmetry highlighted by the benchmark, but it was reasonable to hypothesize
 a correlation with this peculiar profile. A first hypothesis
 pointed in the direction of instruction cache misses as the reason behind
-the overhead attributed to the initial instructions.
+the overhead appearing on the initial instructions.
 ATLAS Kit Validation seemed a good candidate for a large number of such events,
 with its code segment consisting of more than 300 shared libraries.
 
@@ -371,9 +371,9 @@ the samples collected clearly highlighted a performance
 degradation beyond approximately 512~KiB, with core 8 running up to 4 seconds slower
 (9.4\%) in the 3~MB area. 512~KiB is an interesting number, as it
 corresponds to the space addressable with 128 iTLB entries using 4~KiB pages: this
-matches exacly the size of the iTLB on Haswell and Broadwell architectures.
+matches exactly the size of the iTLB on Haswell and Broadwell architectures.
 With a code segment larger than 512~KiB, a heavily nonlinear execution flow starts generating an increasingly
-large number of iTLB misses and a diverging performance possibly points in the direction of different
+large number of iTLB misses and a diverging performance profile possibly points in the direction of different
 behaviour of the pipeline front-end in handling such events. The test was repeated 
 by making use of the huge pages support of the operating
 system (2MiB) to map the code segment of the benchmark. With this setup no 
