@@ -373,7 +373,7 @@ degradation beyond approximately 512~KiB, with core 8 running up to 4 seconds sl
 corresponds to the space addressable with 128 iTLB entries using 4~KiB pages: this
 matches exactly the size of the iTLB on Haswell and Broadwell architectures.
 With a code segment larger than 512~KiB, a heavily nonlinear execution flow starts generating an increasingly
-large number of iTLB misses and a diverging performance profile possibly points in the direction of different
+large number of iTLB misses and a diverging performance profile possibly points in the direction of a different
 behaviour of the pipeline front-end in handling such events. The test was repeated 
 by making use of the huge pages support of the operating
 system (2MiB) to map the code segment of the benchmark. With this setup no 
